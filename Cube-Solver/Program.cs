@@ -6,7 +6,17 @@ namespace Cube_Solver
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Cube cube = new FaceletCube("UUUUUUUUULLLLLLLLLFFFFFFFFFRRRRRRRRRBBBBBBBBBDDDDDDDDD");
+            cube.Print();
+
+            foreach(Cube.Face face in Enum.GetValues(typeof(Cube.Face)))
+            {
+                foreach(Cube.Dir dir in Enum.GetValues(typeof(Cube.Dir)))
+                {
+                    Console.ReadKey(true);
+                    cube.ApplyMove(face, dir).Print();
+                }
+            }
         }
     }
 }
