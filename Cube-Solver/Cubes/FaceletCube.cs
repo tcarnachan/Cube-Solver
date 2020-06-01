@@ -103,6 +103,7 @@ namespace Cube_Solver.Cubes
                 for (int j = 0; j < DIM; j++)
                     Console.Write($"{f[i, j]} ");
             }
+            Console.WriteLine();
         }
 
         public override Cube ApplyMove(Face f, Dir dir)
