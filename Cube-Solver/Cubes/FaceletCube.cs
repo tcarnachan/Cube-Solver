@@ -1,45 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 
-namespace Cube_Solver
+namespace Cube_Solver.Cubes
 {
     /// <summary>
-    /// Abstract class storing useful values
-    /// </summary>
-    public abstract class Cube
-    {
-        protected const int NUM_FACES = 6;
-        protected const int DIM = 3;
-        protected const int DIM_SQR = DIM * DIM;
-        protected const string FACE_CHARS = "ULFRBD";
-
-        public enum Face { U, L, F, R, B, D }
-
-        /// <summary>
-        /// Direction for applying moves (clockwise, half-turn, counter-clockwise)
-        /// </summary>
-        public enum Dir {  CW, HALF, CCW }
-
-        /// <summary>
-        /// Returns this cube with the move applied to it without modifying this object.
-        /// </summary>
-        /// <param name="f">The face to apply the move to.</param>
-        /// <param name="dir">The direction of the move.</param>
-        public abstract Cube ApplyMove(Face f, Dir dir);
-
-        protected abstract bool Verify();
-
-        public abstract void Print();
-    }
-
-    /// <summary>
     /// Represents a cube on the facelet level.
-    /// Each 'sticker' on the cube is stored in a char[][][] which is accessed by [FACE][Row][Col].
+    /// Each facelet on the cube is stored in a char[][][] which is accessed by [FACE][Row][Col].
     /// </summary>
     public class FaceletCube : Cube
     {
-        private char[][,] faces;
+        public Face[][,] faces { get; private set; }
 
         /// <summary>
         /// Constructs a facelet cube from a string representation.
@@ -47,15 +18,15 @@ namespace Cube_Solver
         /// <param name="state">The state of the facelet cube.</param>
         public FaceletCube(string state)
         {
-            Dictionary<char, char> replacements = new Dictionary<char, char>();
-            for(int i = 0; i < NUM_FACES; i++)
-                replacements[FACE_CHARS[i]] = state[(i * DIM_SQR) + (DIM_SQR / 2)];
+            Dictionary<char, Face> replacements = new Dictionary<char, Face>();
+            for (int i = 0; i < NUM_FACES; i++)
+                replacements[state[(i * DIM_SQR) + (DIM_SQR / 2)]] = (Face)i;
 
-            faces = new char[NUM_FACES][,];
-            for(int i = 0; i < NUM_FACES; i++)
+            faces = new Face[NUM_FACES][,];
+            for (int i = 0; i < NUM_FACES; i++)
             {
                 string face = state.Substring(i * DIM_SQR, DIM_SQR);
-                char[,] f = new char[DIM, DIM];
+                Face[,] f = new Face[DIM, DIM];
                 for (int ix = 0; ix < DIM_SQR; ix++)
                     f[ix / DIM, ix % DIM] = replacements[face[ix]];
                 faces[i] = f;
@@ -71,25 +42,33 @@ namespace Cube_Solver
         /// <param name="fc">The FaceletCube to copy.</param>
         public FaceletCube(FaceletCube fc)
         {
-            faces = new char[NUM_FACES][,];
+            faces = new Face[NUM_FACES][,];
             for (int i = 0; i < NUM_FACES; i++)
             {
-                faces[i] = new char[DIM, DIM];
+                faces[i] = new Face[DIM, DIM];
                 Array.Copy(fc.faces[i], faces[i], DIM_SQR);
             }
         }
 
         /// <summary>
-        /// Checks the number of each facelet to ensure it is a possible state
+        /// Constructs a facelet cube from a cube at the cubie level.
         /// </summary>
-        /// <returns>Whether or not this is a valid state</returns>
+        /// <param name="cc">The cube at the cubie level.</param>
+        public FaceletCube(CubieCube cc)
+        {
+        }
+
+        /// <summary>
+        /// Checks the number of each facelet to ensure it is a possible state.
+        /// </summary>
+        /// <returns>Whether or not this is a valid state.</returns>
         protected override bool Verify()
         {
-            foreach(char c in FACE_CHARS)
+            foreach (Face f in Enum.GetValues(typeof(Face)))
             {
                 int count = 0;
-                foreach(char[,] face in faces)
-                    count += Enumerable.Range(0, DIM_SQR).Count(i => face[i / 3, i % 3] == c);
+                foreach (Face[,] face in faces)
+                    count += Enumerable.Range(0, DIM_SQR).Count(i => face[i / 3, i % 3] == f);
                 if (count != DIM_SQR) return false;
             }
             return true;
@@ -98,7 +77,7 @@ namespace Cube_Solver
         public override void Print()
         {
             // Print U-face
-            char[,] f = faces[0];
+            Face[,] f = faces[0];
             for (int i = 0; i < DIM; i++)
             {
                 Console.SetCursorPosition(2 * DIM + 2, i);
@@ -147,8 +126,8 @@ namespace Cube_Solver
 
             // Update this face
             int neg = DIM - 1;
-            char[,] oldFace = faces[(int)face];
-            char[,] newFace = res.faces[(int)face];
+            Face[,] oldFace = faces[(int)face];
+            Face[,] newFace = res.faces[(int)face];
             for (int i = 0; i < DIM; i++)
             {
                 for (int j = 0; j < DIM; j++)
@@ -213,67 +192,5 @@ namespace Cube_Solver
             return res;
         }
     }
-
-    /// <summary>
-    /// Represents a cube on the cubie level.
-    /// Each cubie has an orientation and a permutation.
-    /// Cubies are split into corners and edges as they cannot change places.
-    /// </summary>
-    public class CubieCube : Cube
-    {
-        private const int NUM_EDGES = 12;
-        private const int NUM_CORNERS = 8;
-
-        /// <summary>
-        /// Corner orientations, 0 = oriented, 1 = twisted clockwise, 2 = twisted counter-clockwise.
-        /// </summary>
-        private byte[] co = new byte[NUM_CORNERS];
-        /// <summary>
-        /// Corner permutations, stores numbers from 0-7 representing each corner.
-        /// </summary>
-        private byte[] cp = new byte[NUM_CORNERS];
-        /// <summary>
-        /// Edge orientations, 0 = oriented, 1 = mis-oriented.
-        /// </summary>
-        private byte[] eo = new byte[NUM_EDGES];
-        /// <summary>
-        /// Edge permutations, stores numbers from 0-11 representing each corner.
-        /// </summary>
-        private byte[] ep = new byte[NUM_EDGES];
-
-        /// <summary>
-        /// Constructs a CubieCube from a cube at the facelet level.
-        /// </summary>
-        /// <param name="fc">The cube at the facelet level.</param>
-        public CubieCube(FaceletCube fc)
-        {
-        }
-
-        /// <summary>
-        /// Deep copy constructor.
-        /// </summary>
-        /// <param name="cc">The CubieCube to copy.</param>
-        public CubieCube(CubieCube cc)
-        {
-        }
-
-        public override Cube ApplyMove(Face f, Dir dir)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Print()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Checks number of each piece, orientations of the pieces and the parity of the cube to ensure it is a possible state.
-        /// </summary>
-        /// <returns>Whether or not this is in a valid state.</returns>
-        protected override bool Verify()
-        {
-            throw new NotImplementedException();
-        }
-    }
 }
+

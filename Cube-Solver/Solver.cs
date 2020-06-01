@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Cube_Solver.Cubes;
+
 namespace Cube_Solver
 {
     class Solver

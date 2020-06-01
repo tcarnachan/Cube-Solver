@@ -1,10 +1,11 @@
 ﻿using System;
+using Cube_Solver.Cubes;
 
 namespace Cube_Solver
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             Cube cube = new FaceletCube("UUUUUUUUULLLLLLLLLFFFFFFFFFRRRRRRRRRBBBBBBBBBDDDDDDDDD");
             cube.Print();
