@@ -1,1 +1,33 @@
 2x2 and 3x3 Rubik's cube solver for Computer Science A-Level NEA
+
+Finished minimum viable product with these objectives:
+1. The user can input the state of their cube via the command line
+	a. A letter corresponds to a colour (e.g. White -> W, Yellow -> Y, Green -> G, Blue -> B, Red -> R, Orange -> O)
+		i. The actual letters used does not matter, as long as each colour has a unique letter
+	b. The stickers are input in the following order (holding a fixed orientation)
+			    0  1  2
+			    3  4  5
+			    6  7  8
+			
+	 9 10 11  18 19 20  27 28 29  36 37 38
+	12 13 14  21 22 23  30 31 32  39 40 41
+	15 16 17  24 25 26  33 34 35  42 43 44
+		
+			    45 46 47
+			    48 49 50
+			    51 52 53
+		
+2. The program must detect the colour scheme of the cube based on the input
+	a. The centre pieces (4, 13, 22, 31, 40, 49) are used as reference for the colour scheme as they are fixed relative to each other (they cannot be moved by only turning the outer faces of the cube)
+3. The program can find the result of performing a move (turn of one of the outer faces) on the cube
+4. The user must be able to input a move for the program to execute
+5. The program must be able to do pattern matching to check if the cube is in a solved state
+
+It also has the functionality for the following objective from stage 2:
+6. The program checks that the cube is in a valid state
+	a. There are 9 stickers of each colour
+	b. Each piece of the cube occurs exactly once
+	c. The sum of the orientations of the edge pieces is a multiple of 2
+		Where oriented = 0 and misoriented = 1
+	d. The sum of the orientations of the corner pieces is a multiple of 3
+		Where oriented = 0, twisted clockwise = 1, twisted counter-clockwise = 2
