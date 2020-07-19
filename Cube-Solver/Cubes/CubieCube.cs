@@ -12,19 +12,19 @@ namespace Cube_Solver.Cubes
         /// <summary>
         /// Corner orientations, 0 = oriented, 1 = twisted clockwise, 2 = twisted counter-clockwise.
         /// </summary>
-        private byte[] co = new byte[NUM_CORNERS];
+        public byte[] co = new byte[NUM_CORNERS];
         /// <summary>
         /// Corner permutations, stores numbers from 0-7 representing each corner.
         /// </summary>
-        private byte[] cp = new byte[NUM_CORNERS];
+        public byte[] cp = new byte[NUM_CORNERS];
         /// <summary>
         /// Edge orientations, 0 = oriented, 1 = mis-oriented.
         /// </summary>
-        private byte[] eo = new byte[NUM_EDGES];
+        public byte[] eo = new byte[NUM_EDGES];
         /// <summary>
         /// Edge permutations, stores numbers from 0-11 representing each corner.
         /// </summary>
-        private byte[] ep = new byte[NUM_EDGES];
+        public byte[] ep = new byte[NUM_EDGES];
 
         /// <summary>
         /// Constructs a CubieCube from a cube at the facelet level.

@@ -10,8 +10,16 @@ namespace Cube_Solver
             Cube cube = new FaceletCube("UUUUUUUUULLLLLLLLLFFFFFFFFFRRRRRRRRRBBBBBBBBBDDDDDDDDD");
             cube = cube.ApplyMove(Cube.Face.F, Cube.Dir.CW);
             cube.Print();
+            Console.ReadLine();
+            Console.Clear();
             cube = new CubieCube((FaceletCube)cube);
             cube.Print();
+            Console.ReadLine();
+            Console.Clear();
+            cube = new FaceletCube((CubieCube)cube);
+            cube.Print();
+            Console.ReadLine();
+            Console.Clear();
 
             /*foreach(Cube.Face face in Enum.GetValues(typeof(Cube.Face)))
             {

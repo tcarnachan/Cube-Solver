@@ -56,6 +56,32 @@ namespace Cube_Solver.Cubes
         /// <param name="cc">The cube at the cubie level.</param>
         public FaceletCube(CubieCube cc)
         {
+            faces = new Face[NUM_FACES][,];
+            for (int i = 0; i < NUM_FACES; i++)
+            {
+                faces[i] = new Face[DIM, DIM];
+                faces[i][DIM / 2, DIM / 2] = (Face)i;
+            }
+            // Set corners
+            for(int i = 0; i < NUM_CORNERS; i++)
+            {
+                int ori = cc.co[i];
+                for (int j = 0; j < 3; j++)
+                {
+                    var pos = cornerPieces[i, j];
+                    faces[(int)pos.f][pos.r, pos.c] = cornerPieces[cc.cp[i], (j + 3 - ori) % 3].f;
+                }
+            }
+            // Set edges
+            for (int i = 0; i < NUM_EDGES; i++)
+            {
+                int ori = cc.eo[i];
+                for (int j = 0; j < 2; j++)
+                {
+                    var pos = edgePieces[i, j];
+                    faces[(int)pos.f][pos.r, pos.c] = edgePieces[cc.ep[i], (j + ori) % 2].f;
+                }
+            }
         }
 
         /// <summary>
