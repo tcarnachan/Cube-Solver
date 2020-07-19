@@ -101,6 +101,17 @@ namespace Cube_Solver.Cubes
             return VALID_STATE;
         }
 
+        public override bool IsSolved()
+        {
+            foreach (Face f in Enum.GetValues(typeof(Face)))
+            {
+                Face[,] face = faces[(int)f];
+                if (Enumerable.Range(0, DIM_SQR).Any(i => face[i / 3, i % 3] != f))
+                    return false;
+            }
+            return true;
+        }
+
         public override void Print()
         {
             // Print U-face

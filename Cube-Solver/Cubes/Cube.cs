@@ -30,6 +30,8 @@
         protected abstract string Verify();
         protected const string VALID_STATE = "";
 
+        public abstract bool IsSolved();
+
         public abstract void Print();
 
         protected enum Corner { ULB, UBR, URF, UFL, DBL, DRB, DFR, DLF }

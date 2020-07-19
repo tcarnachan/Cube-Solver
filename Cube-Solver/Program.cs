@@ -22,7 +22,7 @@ namespace Cube_Solver
                 {
                     Cube cube = new FaceletCube(state);
                     cube = new CubieCube((FaceletCube)cube);
-                    Console.WriteLine("Valid state");
+                    Console.WriteLine("Valid state," + (cube.IsSolved() ? "" : " not") + " solved");
                 }
                 catch (Exception e)
                 {

@@ -186,6 +186,17 @@ namespace Cube_Solver.Cubes
             }
             return parity % 2;
         }
+
+        public override bool IsSolved()
+        {
+            // Check orientations
+            if (co.Any(i => i != 0) || eo.Any(i => i != 0))
+                return false;
+            // Check permutations
+            if (!cp.SequenceEqual(Enumerable.Range(0, NUM_CORNERS)) || !ep.SequenceEqual(Enumerable.Range(0, NUM_EDGES)))
+                return false;
+            return true;
+        }
     }
 }
 
