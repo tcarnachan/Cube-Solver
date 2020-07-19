@@ -7,8 +7,8 @@
     {
         protected const int NUM_FACES = 6;
         protected const int DIM = 3;
-        protected const int DIM_SQR = DIM * DIM;
-        protected const string FACE_CHARS = "ULFRBD";
+        public const int DIM_SQR = DIM * DIM;
+        public const string FACE_CHARS = "ULFRBD";
 
         protected const int NUM_EDGES = 12;
         protected const int NUM_CORNERS = 8;

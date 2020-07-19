@@ -18,6 +18,9 @@ namespace Cube_Solver.Cubes
         /// <param name="state">The state of the facelet cube.</param>
         public FaceletCube(string state)
         {
+            if(state.Length < DIM_SQR)
+                throw new Exception("Incorrect number of total facelets");
+            
             Dictionary<char, Face> replacements = new Dictionary<char, Face>();
             for (int i = 0; i < NUM_FACES; i++)
                 replacements[state[(i * DIM_SQR) + (DIM_SQR / 2)]] = (Face)i;
@@ -96,7 +99,7 @@ namespace Cube_Solver.Cubes
                 int count = 0;
                 foreach (Face[,] face in faces)
                     count += Enumerable.Range(0, DIM_SQR).Count(i => face[i / 3, i % 3] == f);
-                if (count != DIM_SQR) return "Incorrect number of individual facelets on cube";
+                if (count != DIM_SQR) return "Incorrect number of individual facelets";
             }
             return VALID_STATE;
         }
