@@ -5,6 +5,7 @@ Finished minimum viable product with these objectives:
 	a. A letter corresponds to a colour (e.g. White -> W, Yellow -> Y, Green -> G, Blue -> B, Red -> R, Orange -> O)
 		i. The actual letters used does not matter, as long as each colour has a unique letter
 	b. The stickers are input in the following order (holding a fixed orientation)
+```
 			    0  1  2
 			    3  4  5
 			    6  7  8
@@ -16,7 +17,7 @@ Finished minimum viable product with these objectives:
 			    45 46 47
 			    48 49 50
 			    51 52 53
-		
+```		
 2. The program must detect the colour scheme of the cube based on the input
 	a. The centre pieces (4, 13, 22, 31, 40, 49) are used as reference for the colour scheme as they are fixed relative to each other (they cannot be moved by only turning the outer faces of the cube)
 3. The program can find the result of performing a move (turn of one of the outer faces) on the cube
