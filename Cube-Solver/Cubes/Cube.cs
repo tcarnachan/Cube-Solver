@@ -27,7 +27,8 @@
         /// <param name="dir">The direction of the move.</param>
         public abstract Cube ApplyMove(Face f, Dir dir);
 
-        protected abstract bool Verify();
+        protected abstract string Verify();
+        protected const string VALID_STATE = "";
 
         public abstract void Print();
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Cube_Solver.Cubes
 {
@@ -12,19 +13,19 @@ namespace Cube_Solver.Cubes
         /// <summary>
         /// Corner orientations, 0 = oriented, 1 = twisted clockwise, 2 = twisted counter-clockwise.
         /// </summary>
-        public byte[] co = new byte[NUM_CORNERS];
+        public int[] co = new int[NUM_CORNERS];
         /// <summary>
         /// Corner permutations, stores numbers from 0-7 representing each corner.
         /// </summary>
-        public byte[] cp = new byte[NUM_CORNERS];
+        public int[] cp = new int[NUM_CORNERS];
         /// <summary>
         /// Edge orientations, 0 = oriented, 1 = mis-oriented.
         /// </summary>
-        public byte[] eo = new byte[NUM_EDGES];
+        public int[] eo = new int[NUM_EDGES];
         /// <summary>
         /// Edge permutations, stores numbers from 0-11 representing each corner.
         /// </summary>
-        public byte[] ep = new byte[NUM_EDGES];
+        public int[] ep = new int[NUM_EDGES];
 
         /// <summary>
         /// Constructs a CubieCube from a cube at the facelet level.
@@ -65,8 +66,8 @@ namespace Cube_Solver.Cubes
                     throw new Exception($"Corner {c[0]}{c[1]}{c[2]} not found");
 
                 // At corner position i is corner cubie j
-                cp[i] = (byte)(j - 1);
-                co[i] = (byte)(ori);
+                cp[i] = (j - 1);
+                co[i] = (ori);
             }
 
             // For each edge position
@@ -97,9 +98,13 @@ namespace Cube_Solver.Cubes
                     throw new Exception($"Edge {e[0]}{e[1]} not found");
 
                 // At corner position i is corner cubie j
-                ep[i] = (byte)(j - 1);
-                eo[i] = (byte)(ori);
+                ep[i] = (j - 1);
+                eo[i] = (ori);
             }
+
+            string err = Verify();
+            if (err != VALID_STATE)
+                throw new Exception(err);
         }
 
         private static Face GetFacelet(FaceletCube fc, (Face f, int r, int c) index)
@@ -146,9 +151,40 @@ namespace Cube_Solver.Cubes
         /// Checks number of each piece, orientations of the pieces and the parity of the cube to ensure it is a possible state.
         /// </summary>
         /// <returns>Whether or not this is in a valid state.</returns>
-        protected override bool Verify()
+        protected override string Verify()
         {
-            throw new NotImplementedException();
+            // Check that each piece exists
+            for(int i = 0; i < NUM_CORNERS; i++)
+            {
+                if(!cp.Contains(i))
+                    return "Missing corner piece";
+            }
+            for (int i = 0; i < NUM_EDGES; i++)
+            {
+                if (!ep.Contains(i))
+                    return "Missing edge piece";
+            }
+            // Check orientations
+            if (co.Sum() % 3 != 0)
+                return "Invalid corner orientation";
+            if (eo.Sum() % 2 != 0)
+                return "Invalid edge orientation";
+            if ((GetParity(cp) ^ GetParity(ep)) != 0)
+                return "Invalid parity";
+            return VALID_STATE;
+        }
+
+        private int GetParity(int[] data)
+        {
+            int parity = 0;
+            for(int i = 0; i < data.Length; i++)
+            {
+                for(int j = 0; j < i; j++)
+                {
+                    if (data[j] > data[i]) parity++;
+                }
+            }
+            return parity % 2;
         }
     }
 }

@@ -7,28 +7,32 @@ namespace Cube_Solver
     {
         static void Main()
         {
-            Cube cube = new FaceletCube("UUUUUUUUULLLLLLLLLFFFFFFFFFRRRRRRRRRBBBBBBBBBDDDDDDDDD");
-            cube = cube.ApplyMove(Cube.Face.F, Cube.Dir.CW);
-            cube.Print();
-            Console.ReadLine();
-            Console.Clear();
-            cube = new CubieCube((FaceletCube)cube);
-            cube.Print();
-            Console.ReadLine();
-            Console.Clear();
-            cube = new FaceletCube((CubieCube)cube);
-            cube.Print();
-            Console.ReadLine();
-            Console.Clear();
-
-            /*foreach(Cube.Face face in Enum.GetValues(typeof(Cube.Face)))
+            string[] tests =
             {
-                foreach(Cube.Dir dir in Enum.GetValues(typeof(Cube.Dir)))
+                "UUUUUUUUULLLLLLLLLFFFFFFFFFRRRRRRRRRBBBBBBBBBDDDDDDDDD", // Solved cube
+                "UUUUUUUUUULLLLLLLLFFFFFFFFFRRRRRRRRRBBBBBBBBBDDDDDDDDD", // Incorrect number of each facelet
+                "UUUUUUUUFLLLLLLLLLFFRFFFFFFURRRRRRRRBBBBBBBBBDDDDDDDDD", // Twisted corner
+                "UBUUUUUUULLLLLLLLLFFFFFFFFFRRRRRRRRRBUBBBBBBBDDDDDDDDD", // Flipped edge
+                "UUUUUUUUULRLLLLLLLFFFFFFFFFRLRRRRRRRBBBBBBBBBDDDDDDDDD", // Swapped two edges (odd parity)
+                "UUUUUULLLLLDLLDLLDFFFFFFFFFURRURRURRBBBBBBBBBRRRDDDDDD"  // Rotated F-face (valid state)
+            };
+            foreach (string state in tests)
+            {
+                try
                 {
-                    Console.ReadKey(true);
-                    cube.ApplyMove(face, dir).Print();
+                    Cube cube = new FaceletCube(state);
+                    cube = new CubieCube((FaceletCube)cube);
+                    Console.WriteLine("Valid state");
                 }
-            }*/
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                finally
+                {
+                    Console.ReadLine();
+                }
+            }
         }
     }
 }

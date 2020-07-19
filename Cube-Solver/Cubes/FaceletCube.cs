@@ -32,8 +32,9 @@ namespace Cube_Solver.Cubes
                 faces[i] = f;
             }
 
-            if (!Verify())
-                throw new Exception("Incorrect number of individual facelets on cube");
+            string err = Verify();
+            if (err != VALID_STATE)
+                throw new Exception(err);
         }
 
         /// <summary>
@@ -88,16 +89,16 @@ namespace Cube_Solver.Cubes
         /// Checks the number of each facelet to ensure it is a possible state.
         /// </summary>
         /// <returns>Whether or not this is a valid state.</returns>
-        protected override bool Verify()
+        protected override string Verify()
         {
             foreach (Face f in Enum.GetValues(typeof(Face)))
             {
                 int count = 0;
                 foreach (Face[,] face in faces)
                     count += Enumerable.Range(0, DIM_SQR).Count(i => face[i / 3, i % 3] == f);
-                if (count != DIM_SQR) return false;
+                if (count != DIM_SQR) return "Incorrect number of individual facelets on cube";
             }
-            return true;
+            return VALID_STATE;
         }
 
         public override void Print()
