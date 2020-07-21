@@ -126,7 +126,8 @@ namespace Cube_Solver.Cubes
 
         public override Cube ApplyMove(Face f, Dir dir)
         {
-            throw new NotImplementedException();
+            Cube nc = new FaceletCube(this).ApplyMove(f, dir);
+            return new CubieCube((FaceletCube)nc);
         }
 
         // Prints the permutations and orientations of each piece (corners and then edges)
