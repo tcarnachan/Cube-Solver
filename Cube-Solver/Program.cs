@@ -13,11 +13,12 @@ namespace Cube_Solver
             #region Testing
             FaceletCube fc = new FaceletCube(solved);
             CubieCube cc = new CubieCube(fc);
-
             Solver solver = new Solver(cc);
 
-            /*cc = ApplyAlgorithm(cc, "R U R' F' R2 D' F2 L");
+            cc = (CubieCube)ApplyAlgorithm(cc, "R U R' F' R2 D' F2 L");
+            solver.Solve(cc);
 
+            /*
             fc = new FaceletCube((CubieCube)cc);
             fc.Print();
 

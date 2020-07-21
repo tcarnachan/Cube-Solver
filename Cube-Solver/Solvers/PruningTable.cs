@@ -54,5 +54,13 @@ namespace Cube_Solver.Solvers
 
             File.WriteAllBytes(filepath, table);
         }
+
+        public byte this[int i]
+        {
+            get
+            {
+                return table[i];
+            }
+        }
     }
 }
