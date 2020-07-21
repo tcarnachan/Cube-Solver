@@ -1,5 +1,6 @@
 ﻿using System;
 using Cube_Solver.Cubes;
+using Cube_Solver.Solvers;
 
 namespace Cube_Solver
 {
@@ -11,14 +12,16 @@ namespace Cube_Solver
 
             #region Testing
             FaceletCube fc = new FaceletCube(solved);
-            Cube cc = new CubieCube(fc);
+            CubieCube cc = new CubieCube(fc);
 
-            cc = ApplyAlgorithm(cc, "R U R' F' R2 D' F2 L");
+            Solver solver = new Solver(cc);
+
+            /*cc = ApplyAlgorithm(cc, "R U R' F' R2 D' F2 L");
 
             fc = new FaceletCube((CubieCube)cc);
             fc.Print();
 
-            Console.ReadKey(true);
+            Console.ReadKey(true);*/
             return;
             #endregion
 

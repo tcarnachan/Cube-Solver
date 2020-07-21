@@ -36,7 +36,7 @@
 
         protected enum Corner { ULB, UBR, URF, UFL, DBL, DRB, DFR, DLF }
 
-        protected enum Edge { UB, UR, UF, UL, DB, DR, DF, DL, BL, BR, FR, FL }
+        public enum Edge { UB, UR, UF, UL, DB, DR, DF, DL, BL, BR, FR, FL }
 
         protected static readonly (Face f, int r, int c)[,] cornerPieces =
         {
