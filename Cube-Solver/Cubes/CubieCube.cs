@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Cube_Solver.Cubes
@@ -13,19 +14,38 @@ namespace Cube_Solver.Cubes
         /// <summary>
         /// Corner orientations, 0 = oriented, 1 = twisted clockwise, 2 = twisted counter-clockwise.
         /// </summary>
-        public int[] co = new int[NUM_CORNERS];
+        public int[] co { get; private set; } = new int[NUM_CORNERS];
         /// <summary>
         /// Corner permutations, stores numbers from 0-7 representing each corner.
         /// </summary>
-        public int[] cp = new int[NUM_CORNERS];
+        public int[] cp { get; private set; } = new int[NUM_CORNERS];
         /// <summary>
         /// Edge orientations, 0 = oriented, 1 = mis-oriented.
         /// </summary>
-        public int[] eo = new int[NUM_EDGES];
+        public int[] eo { get; private set; } = new int[NUM_EDGES];
         /// <summary>
-        /// Edge permutations, stores numbers from 0-11 representing each corner.
+        /// Edge permutations, stores numbers from 0-11 representing each edge.
         /// </summary>
-        public int[] ep = new int[NUM_EDGES];
+        public int[] ep { get; private set; } = new int[NUM_EDGES];
+
+        #region Cache move data
+        private static Dictionary<Face, MoveData> moveLookup = new Dictionary<Face, MoveData>();
+
+        private static bool initialised = false;
+
+        private static void Initialise()
+        {
+            initialised = true;
+
+            string solved = "";
+            foreach (Face f in Enum.GetValues(typeof(Face)))
+                solved += new string(f.ToString()[0], DIM_SQR);
+
+            Cube fc = new FaceletCube(solved);
+            foreach (Face f in Enum.GetValues(typeof(Face)))
+                moveLookup[f] = new MoveData(new CubieCube((FaceletCube)fc.ApplyMove(f, Dir.CW)));
+        }
+        #endregion
 
         /// <summary>
         /// Constructs a CubieCube from a cube at the facelet level.
@@ -124,10 +144,24 @@ namespace Cube_Solver.Cubes
             Array.Copy(cc.eo, eo, NUM_EDGES);
         }
 
+        public CubieCube(int[] cp, int[] co, int[] ep, int[] eo)
+        {
+            Array.Copy(cp, this.cp, NUM_CORNERS);
+            Array.Copy(co, this.co, NUM_CORNERS);
+            Array.Copy(ep, this.ep, NUM_EDGES);
+            Array.Copy(eo, this.eo, NUM_EDGES);
+        }
+
         public override Cube ApplyMove(Face f, Dir dir)
         {
-            Cube nc = new FaceletCube(this).ApplyMove(f, dir);
-            return new CubieCube((FaceletCube)nc);
+            if (!initialised)
+                Initialise();
+
+            CubieCube res = moveLookup[f].ApplyMove(this);
+            for (int i = 0; i < (int)dir; i++)
+                res = moveLookup[f].ApplyMove(res);
+
+            return res;
         }
 
         // Prints the permutations and orientations of each piece (corners and then edges)

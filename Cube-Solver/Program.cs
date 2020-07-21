@@ -9,6 +9,19 @@ namespace Cube_Solver
         {
             string solved = "UUUUUUUUULLLLLLLLLFFFFFFFFFRRRRRRRRRBBBBBBBBBDDDDDDDDD";
 
+            #region Testing
+            FaceletCube fc = new FaceletCube(solved);
+            Cube cc = new CubieCube(fc);
+
+            cc = ApplyAlgorithm(cc, "R U R' F' R2 D' F2 L");
+
+            fc = new FaceletCube((CubieCube)cc);
+            fc.Print();
+
+            Console.ReadKey(true);
+            return;
+            #endregion
+
             MenuItem[] menuItems = new MenuItem[] {
                 new MenuItem("Interact with a solved cube", () => { Interact(new FaceletCube(solved)); }),
                 new MenuItem("Enter a custom cube state", () => { Interact(ReadCube()); }),
@@ -20,6 +33,19 @@ namespace Cube_Solver
                 DisplayMenu(menuItems);
                 menuItems[ReadInt(1, menuItems.Length) - 1].function();
             }
+        }
+
+        private static Cube ApplyAlgorithm(Cube cube, string algorithm)
+        {
+            foreach(string s in algorithm.Split(' '))
+            {
+                Cube.Face f = (Cube.Face)Cube.FACE_CHARS.IndexOf(s[0]);
+                if (s.Length == 1)
+                    cube = cube.ApplyMove(f, Cube.Dir.CW);
+                else
+                    cube = cube.ApplyMove(f, (Cube.Dir)" 2'".IndexOf(s[1]));
+            }
+            return cube;
         }
 
         private static void DisplayMenu(MenuItem[] menuItems)
