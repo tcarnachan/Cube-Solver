@@ -186,18 +186,15 @@ namespace Cube_Solver.Solvers
         private int maxDepth;
         private Stack<(CubieCube, int)> path;
 
-        public int[] Solve(CubieCube cube)//string state)
+        public void Solve(CubieCube cube)
         {
-            //CubieCube cube = new CubieCube(new FaceletCube(state));
 
             path = new Stack<(CubieCube, int)>();
             path.Push((cube, -1));
             maxDepth = 20;
 
-            for (int i = 0; i < maxDepth; i++)
-                Phase1(i + 1);
-
-            return null;
+            for (int i = 0; i <= maxDepth; i++)
+                Phase1(i);
         }
 
         private void Phase1(int depth)
@@ -208,18 +205,13 @@ namespace Cube_Solver.Solvers
             CubieCube curr = path.Peek().Item1;
             if (GetPhase1Heur(curr) == 0)
             {
-                // Print phase1 solution:
-                var temp = new Stack<(CubieCube, int)>(path);
-                temp.Pop();
-                while (temp.Count > 0)
+                int m = path.Peek().Item2;
+                int len = path.Count;
+                if (!phase2moves.Contains(((Cube.Face)(m / 3), (Cube.Dir)(m % 3))))
                 {
-                    int m = temp.Pop().Item2;
-                    Console.Write(Cube.FACE_CHARS[m / 3] + new string[] { " ", "2 ", "' " }[m % 3]);
+                    for (int i = 0; i <= maxDepth - len; i++)
+                        Phase2(i);
                 }
-                Console.WriteLine();
-
-                for (int i = 0; i < maxDepth - depth; i++)
-                    Phase2(i + 1);
             }
             else
             {
@@ -242,7 +234,42 @@ namespace Cube_Solver.Solvers
 
         private void Phase2(int depth)
         {
-            
+            if (depth < 0)
+                return;
+
+            CubieCube curr = path.Peek().Item1;
+            if (GetPhase2Heur(curr) == 0)
+            {
+                // Print solution
+                var temp = new Stack<(CubieCube, int)>(path);
+                temp.Pop();
+                int len = temp.Count;
+                while (temp.Count > 0)
+                {
+                    int m = temp.Pop().Item2;
+                    Console.Write(Cube.FACE_CHARS[m / 3] + new string[] { " ", "2 ", "' " }[m % 3]);
+                }
+                Console.WriteLine($"({len})");
+                // Update maxDepth
+                maxDepth = len;
+            }
+            else
+            {
+                if (GetPhase2Heur(curr) <= depth)
+                {
+                    foreach (var move in phase2moves)
+                    {
+                        path.Push(((CubieCube)curr.ApplyMove(move.Item1, move.Item2), (int)move.Item1 * 3 + (int)move.Item2));
+                        Phase2(depth - 1);
+                        path.Pop();
+                    }
+                }
+            }
+        }
+
+        private int GetPhase2Heur(CubieCube cc)
+        {
+            return Math.Max(cpTable[GetCP(cc)], epTable[GetEP(cc)]);
         }
     }
 }
