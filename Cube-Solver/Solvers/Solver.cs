@@ -5,6 +5,9 @@ using Cube_Solver.Cubes;
 
 namespace Cube_Solver.Solvers
 {
+    using Face = Cube.Face;
+    using Dir = Cube.Dir;
+
     class Solver
     {
         private const int NUM_COS = 2187;   // 3^7 cases
@@ -23,8 +26,8 @@ namespace Cube_Solver.Solvers
         private Dictionary<int, int> eslice2ix = new Dictionary<int, int>();
         private int[] factorials;
 
-        private List<(Cube.Face, Cube.Dir)> phase1moves = new List<(Cube.Face, Cube.Dir)>();
-        private List<(Cube.Face, Cube.Dir)> phase2moves = new List<(Cube.Face, Cube.Dir)>();
+        private List<(Face, Dir)> phase1moves = new List<(Face, Dir)>();
+        private List<(Face, Dir)> phase2moves = new List<(Face, Dir)>();
 
         #region Generating pruning tables
         public Solver(CubieCube solved)
@@ -48,9 +51,9 @@ namespace Cube_Solver.Solvers
             }
 
             // All moves are valid for phase 1
-            foreach(Cube.Face f in Enum.GetValues(typeof(Cube.Face)))
+            foreach(Face f in Enum.GetValues(typeof(Face)))
             {
-                foreach (Cube.Dir dir in Enum.GetValues(typeof(Cube.Dir)))
+                foreach (Dir dir in Enum.GetValues(typeof(Dir)))
                     phase1moves.Add((f, dir));
             }
 
@@ -74,15 +77,15 @@ namespace Cube_Solver.Solvers
             }
 
             // Phase 2 <U, D, F2, B2, R2, L2>
-            foreach (Cube.Face f in Enum.GetValues(typeof(Cube.Face)))
+            foreach (Face f in Enum.GetValues(typeof(Face)))
             {
-                if (f == Cube.Face.U || f == Cube.Face.D)
+                if (f == Face.U || f == Face.D)
                 {
-                    foreach (Cube.Dir dir in Enum.GetValues(typeof(Cube.Dir)))
+                    foreach (Dir dir in Enum.GetValues(typeof(Dir)))
                         phase2moves.Add((f, dir));
                 }
                 else
-                    phase2moves.Add((f, Cube.Dir.HALF));
+                    phase2moves.Add((f, Dir.HALF));
             }
 
             // Initialise phase 2 pruning tables
@@ -207,7 +210,7 @@ namespace Cube_Solver.Solvers
             {
                 int m = path.Peek().Item2;
                 int len = path.Count;
-                if (!phase2moves.Contains(((Cube.Face)(m / 3), (Cube.Dir)(m % 3))))
+                if (!phase2moves.Contains(((Face)(m / 3), (Dir)(m % 3))))
                 {
                     for (int i = 0; i <= maxDepth - len; i++)
                         Phase2(i);
@@ -217,11 +220,15 @@ namespace Cube_Solver.Solvers
             {
                 if(GetPhase1Heur(curr) <= depth)
                 {
-                    foreach(var move in phase1moves)
+                    int prev = (path.Peek().Item2 / 3);
+                    foreach (var move in phase1moves)
                     {
-                        path.Push(((CubieCube)curr.ApplyMove(move.Item1, move.Item2), (int)move.Item1 * 3 + (int)move.Item2));
-                        Phase1(depth - 1);
-                        path.Pop();
+                        if (prev == -1 || ValidMove((Face)prev, move.Item1))
+                        {
+                            path.Push(((CubieCube)curr.ApplyMove(move.Item1, move.Item2), (int)move.Item1 * 3 + (int)move.Item2));
+                            Phase1(depth - 1);
+                            path.Pop();
+                        }
                     }
                 }
             }
@@ -257,11 +264,15 @@ namespace Cube_Solver.Solvers
             {
                 if (GetPhase2Heur(curr) <= depth)
                 {
+                    int prev = (path.Peek().Item2 / 3);
                     foreach (var move in phase2moves)
                     {
-                        path.Push(((CubieCube)curr.ApplyMove(move.Item1, move.Item2), (int)move.Item1 * 3 + (int)move.Item2));
-                        Phase2(depth - 1);
-                        path.Pop();
+                        if (prev == -1 || ValidMove((Face)prev, move.Item1))
+                        {
+                            path.Push(((CubieCube)curr.ApplyMove(move.Item1, move.Item2), (int)move.Item1 * 3 + (int)move.Item2));
+                            Phase2(depth - 1);
+                            path.Pop();
+                        }
                     }
                 }
             }
@@ -270,6 +281,20 @@ namespace Cube_Solver.Solvers
         private int GetPhase2Heur(CubieCube cc)
         {
             return Math.Max(cpTable[GetCP(cc)], epTable[GetEP(cc)]);
+        }
+
+        private Dictionary<Face, Face> movePairs = new Dictionary<Face, Face>
+        {
+            { Face.B, Face.F },
+            { Face.R, Face.L },
+            { Face.U, Face.D }
+        };
+        private bool ValidMove(Face prev, Face curr)
+        {
+            if (prev == curr)
+                return false;
+
+            return (!movePairs.ContainsKey(prev) || movePairs[prev] != curr);
         }
     }
 }
