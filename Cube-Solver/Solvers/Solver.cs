@@ -11,9 +11,9 @@ namespace Cube_Solver.Solvers
     class Solver
     {
         private const int NUM_COS = 2187;   // 3^7 cases
-        private const int NUM_ESLICE = 495; // 12C4 cases
+        public const int NUM_ESLICE = 495; // 12C4 cases
         private const int NUM_EOS = 1013760; // 2^11 * 12C4 cases
-        private const int NUM_CPS = 40320;  // 8! cases
+        public const int NUM_CPS = 40320;  // 8! cases
         private const int NUM_EPS = 967680; // 8! * 4! cases
 
         private const string coPath = "res/corner_ori";
@@ -22,33 +22,16 @@ namespace Cube_Solver.Solvers
         private const string epPath = "res/edge_perm";
 
         private PruningTable coTable, eoTable, cpTable, epTable;
-        private int[] onesLookup = new int[NUM_CPS];
-        private Dictionary<int, int> eslice2ix = new Dictionary<int, int>();
-        private int[] factorials;
 
         private List<(Face, Dir)> phase1moves = new List<(Face, Dir)>();
         private List<(Face, Dir)> phase2moves = new List<(Face, Dir)>();
 
+        private IdCalculator idCalc;
+
         #region Generating pruning tables
         public Solver(CubieCube solved)
         {
-            // Lookup tables for calculating ids
-            for (int i = 0; i < NUM_CPS; i++)
-                onesLookup[i] = BitCount(i);
-            for (int i = 0, j = 0; i < NUM_ESLICE; i++, j++)
-            {
-                int bits = onesLookup[j];
-                while (bits != 3 && bits != 4)
-                    bits = onesLookup[++j];
-                eslice2ix[j] = i;
-            }
-            factorials = new int[solved.ep.Length];
-            factorials[0] = 1;
-            for (int fact = 1, i = 1; i < solved.ep.Length; ++i)
-            {
-                fact *= i;
-                factorials[i] = fact;
-            }
+            idCalc = new IdCalculator(solved);
 
             // All moves are valid for phase 1
             foreach(Face f in Enum.GetValues(typeof(Face)))
@@ -58,23 +41,8 @@ namespace Cube_Solver.Solvers
             }
 
             // Initialise phase 1 pruning tables
-            if (File.Exists(coPath))
-                coTable = new PruningTable(coPath);
-            else
-            {
-                Console.WriteLine("Generating corner orientation tables...");
-                coTable = new PruningTable(solved, NUM_COS, GetCO, phase1moves, coPath);
-                Console.WriteLine("done\n");
-            }
-
-            if (File.Exists(eoPath))
-                eoTable = new PruningTable(eoPath);
-            else
-            {
-                Console.WriteLine("Generating edge orientation tables...");
-                eoTable = new PruningTable(solved, NUM_EOS, cc => GetEO(cc) * NUM_ESLICE + GetEslice(cc), phase1moves, eoPath);
-                Console.WriteLine("done\n");
-            }
+            InitTable(out coTable, solved, NUM_COS, idCalc.GetCO, phase1moves, coPath, "corner orientation");
+            InitTable(out eoTable, solved, NUM_EOS, cc => idCalc.GetEO(cc) * NUM_ESLICE + idCalc.GetEslice(cc), phase1moves, eoPath, "edge orientation");
 
             // Phase 2 <U, D, F2, B2, R2, L2>
             foreach (Face f in Enum.GetValues(typeof(Face)))
@@ -89,100 +57,21 @@ namespace Cube_Solver.Solvers
             }
 
             // Initialise phase 2 pruning tables
-            if (File.Exists(cpPath))
-                cpTable = new PruningTable(cpPath);
+            InitTable(out cpTable, solved, NUM_CPS, idCalc.GetCP, phase2moves, cpPath, "corner permutation");
+            InitTable(out epTable, solved, NUM_EPS, idCalc.GetEP, phase2moves, epPath, "edge permutation");
+        }
+
+
+        private void InitTable(out PruningTable table, CubieCube solved, int size, Func<CubieCube, int> GetID, List<(Cube.Face, Cube.Dir)> applicableMoves, string filepath, string description)
+        {
+            if (File.Exists(filepath))
+                table = new PruningTable(filepath);
             else
             {
-                Console.WriteLine("Generating corner permutation tables...");
-                cpTable = new PruningTable(solved, NUM_CPS, GetCP, phase2moves, cpPath);
+                Console.WriteLine($"Generating {description} tables...");
+                table = new PruningTable(solved, size, GetID, applicableMoves, filepath);
                 Console.WriteLine("done\n");
             }
-
-            if (File.Exists(epPath))
-                epTable = new PruningTable(epPath);
-            else
-            {
-                Console.WriteLine("Generating edge permutation tables...");
-                epTable = new PruningTable(solved, NUM_EPS, GetEP, phase2moves, epPath);
-                Console.WriteLine("done\n");
-            }
-        }
-
-        private static int BitCount(int n)
-        {
-            int count = 0;
-            while (n > 0)
-            {
-                n &= (n - 1);
-                count++;
-            }
-            return count;
-        }
-
-        private static int GetCO(CubieCube cc)
-        {
-            int id = 0;
-            for(int i = 0; i < cc.co.Length - 1; i++)
-            {
-                id *= 3;
-                id += cc.co[i];
-            }
-            return id;
-        }
-
-        private static int GetEO(CubieCube cc)
-        {
-            int id = 0;
-            for (int i = 0; i < cc.eo.Length - 1; i++)
-            {
-                id <<= 1;
-                id += cc.eo[i];
-            }
-            return id;
-        }
-
-        private int GetEslice(CubieCube cc)
-        {
-            int esp = 0;
-            for (int i = 0; i < cc.ep.Length - 1; ++i)
-            {
-                if ((int)Cube.Edge.BL <= cc.ep[i] && cc.ep[i] <= (int)Cube.Edge.FL)
-                    esp |= (1 << i);
-            }
-            return eslice2ix[esp];
-        }
-
-        private int GetCP(CubieCube cc)
-        {
-            int id = 0, seen = 0;
-            for (int i = 0; i < cc.cp.Length - 1; ++i)
-            {
-                seen |= 1 << (cc.cp.Length - 1 - cc.cp[i]);
-                int less = onesLookup[seen >> (cc.cp.Length - cc.cp[i])];
-                id += (cc.cp[i] - less) * factorials[cc.cp.Length - 1 - i];
-            }
-            return id;
-        }
-
-        private int GetEP(CubieCube cc)
-        {
-            int id = 0, seen = 0;
-            for (int i = 0; i < cc.cp.Length - 1; ++i)
-            {
-                seen |= 1 << (cc.cp.Length - 1 - cc.ep[i]);
-                int less = onesLookup[seen >> (cc.cp.Length - cc.ep[i])];
-                id += (cc.ep[i] - less) * factorials[cc.cp.Length - 1 - i];
-            }
-            id *= 24;
-            seen = 0;
-            int BL = (int)Cube.Edge.BL;
-            for (int i = 0; i < 3; ++i)
-            {
-                seen |= 1 << (3 - cc.ep[i + BL] + BL);
-                int less = onesLookup[seen >> (4 - cc.ep[i + BL] + BL)];
-                id += (cc.ep[i + BL] - BL - less) * factorials[3 - i];
-            }
-            return id;
         }
         #endregion
 
@@ -194,93 +83,60 @@ namespace Cube_Solver.Solvers
 
             path = new Stack<(CubieCube, int)>();
             path.Push((cube, -1));
-            maxDepth = 20;
+            maxDepth = int.MaxValue;
 
             for (int i = 0; i <= maxDepth; i++)
-                Phase1(i);
+                IDAStar(i, cc => Math.Max(coTable[idCalc.GetCO(cc)], eoTable[idCalc.GetEO(cc) * NUM_ESLICE + idCalc.GetEslice(cc)]), BeginPhase2, phase1moves);
         }
 
-        private void Phase1(int depth)
+        private void IDAStar(int depth, Func<CubieCube, int> Heur, Action EndFunc, List<(Cube.Face, Cube.Dir)> applicableMoves)
         {
             if (depth < 0)
                 return;
 
             CubieCube curr = path.Peek().Item1;
-            if (GetPhase1Heur(curr) == 0)
+            if (Heur(curr) == 0)
+                EndFunc();
+            else if (Heur(curr) <= depth)
             {
-                int m = path.Peek().Item2;
-                int len = path.Count;
-                if (!phase2moves.Contains(((Face)(m / 3), (Dir)(m % 3))))
+                int prev = (path.Peek().Item2 / 3);
+                foreach (var move in applicableMoves)
                 {
-                    for (int i = 0; i <= maxDepth - len; i++)
-                        Phase2(i);
-                }
-            }
-            else
-            {
-                if(GetPhase1Heur(curr) <= depth)
-                {
-                    int prev = (path.Peek().Item2 / 3);
-                    foreach (var move in phase1moves)
+                    if (prev == -1 || ValidMove((Face)prev, move.Item1))
                     {
-                        if (prev == -1 || ValidMove((Face)prev, move.Item1))
-                        {
-                            path.Push(((CubieCube)curr.ApplyMove(move.Item1, move.Item2), (int)move.Item1 * 3 + (int)move.Item2));
-                            Phase1(depth - 1);
-                            path.Pop();
-                        }
+                        path.Push(((CubieCube)curr.ApplyMove(move.Item1, move.Item2), (int)move.Item1 * 3 + (int)move.Item2));
+                        IDAStar(depth - 1, Heur, EndFunc, applicableMoves);
+                        path.Pop();
                     }
                 }
             }
         }
 
-        private int GetPhase1Heur(CubieCube cc)
+        private void BeginPhase2()
         {
-            return Math.Max(coTable[GetCO(cc)], eoTable[GetEO(cc) * NUM_ESLICE + GetEslice(cc)]);
-        }
-
-        private void Phase2(int depth)
-        {
-            if (depth < 0)
-                return;
-
-            CubieCube curr = path.Peek().Item1;
-            if (GetPhase2Heur(curr) == 0)
+            int m = path.Peek().Item2;
+            int len = path.Count;
+            if (!phase2moves.Contains(((Face)(m / 3), (Dir)(m % 3))))
             {
-                // Print solution
-                var temp = new Stack<(CubieCube, int)>(path);
-                temp.Pop();
-                int len = temp.Count;
-                while (temp.Count > 0)
-                {
-                    int m = temp.Pop().Item2;
-                    Console.Write(Cube.FACE_CHARS[m / 3] + new string[] { " ", "2 ", "' " }[m % 3]);
-                }
-                Console.WriteLine($"({len})");
-                // Update maxDepth
-                maxDepth = len;
-            }
-            else
-            {
-                if (GetPhase2Heur(curr) <= depth)
-                {
-                    int prev = (path.Peek().Item2 / 3);
-                    foreach (var move in phase2moves)
-                    {
-                        if (prev == -1 || ValidMove((Face)prev, move.Item1))
-                        {
-                            path.Push(((CubieCube)curr.ApplyMove(move.Item1, move.Item2), (int)move.Item1 * 3 + (int)move.Item2));
-                            Phase2(depth - 1);
-                            path.Pop();
-                        }
-                    }
-                }
+                for (int i = 0; i <= maxDepth - len; i++)
+                    IDAStar(i, cc => Math.Max(cpTable[idCalc.GetCP(cc)], epTable[idCalc.GetEP(cc)]), EndPhase2, phase2moves);
             }
         }
 
-        private int GetPhase2Heur(CubieCube cc)
+        private void EndPhase2()
         {
-            return Math.Max(cpTable[GetCP(cc)], epTable[GetEP(cc)]);
+            // Print solution
+            var temp = new Stack<(CubieCube, int)>(path);
+            temp.Pop();
+            int len = temp.Count;
+            while (temp.Count > 0)
+            {
+                int m = temp.Pop().Item2;
+                Console.Write(Cube.FACE_CHARS[m / 3] + new string[] { " ", "2 ", "' " }[m % 3]);
+            }
+            Console.WriteLine($"({len})");
+            // Update maxDepth
+            maxDepth = len;
         }
 
         private Dictionary<Face, Face> movePairs = new Dictionary<Face, Face>

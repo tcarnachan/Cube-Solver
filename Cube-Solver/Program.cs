@@ -15,7 +15,7 @@ namespace Cube_Solver
             CubieCube cc = new CubieCube(fc);
             Solver solver = new Solver(cc);
 
-            cc = (CubieCube)ApplyAlgorithm(cc, "R U R' F' R2 D' F2 L");
+            cc = (CubieCube)ApplyAlgorithm(cc, "U L2 R2 D' L2 D R2 B2 L2 B2 D2 R2 B' R' B2 D' B L2 D' R' F'");
             solver.Solve(cc);
 
             /*
