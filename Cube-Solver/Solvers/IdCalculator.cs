@@ -1,19 +1,19 @@
 ﻿using Cube_Solver.Cubes;
 using System.Collections.Generic;
 
-namespace Cube_Solver.Solvers
+namespace Cube_Solver.Solver
 {
     class IdCalculator
     {
-        private int[] onesLookup = new int[Solver.NUM_CPS];
+        private int[] onesLookup = new int[Search.NUM_CPS];
         private Dictionary<int, int> eslice2ix = new Dictionary<int, int>();
         private int[] factorials;
 
         public IdCalculator(CubieCube solved)
         {
-            for (int i = 0; i < Solver.NUM_CPS; i++)
+            for (int i = 0; i < Search.NUM_CPS; i++)
                 onesLookup[i] = BitCount(i);
-            for (int i = 0, j = 0; i < Solver.NUM_ESLICE; i++, j++)
+            for (int i = 0, j = 0; i < Search.NUM_ESLICE; i++, j++)
             {
                 int bits = onesLookup[j];
                 while (bits != 3 && bits != 4)

@@ -209,7 +209,7 @@ namespace Cube_Solver.Cubes
             return VALID_STATE;
         }
 
-        private int GetParity(int[] data)
+        private static int GetParity(int[] data)
         {
             int parity = 0;
             for(int i = 0; i < data.Length; i++)
@@ -231,6 +231,24 @@ namespace Cube_Solver.Cubes
             if (!cp.SequenceEqual(Enumerable.Range(0, NUM_CORNERS)) || !ep.SequenceEqual(Enumerable.Range(0, NUM_EDGES)))
                 return false;
             return true;
+        }
+
+        public static CubieCube RandomCube()
+        {
+            // Randomly arrange the edges
+            int[] ep = Enumerable.Range(0, NUM_EDGES).OrderBy(_ => Guid.NewGuid()).ToArray();
+            // Randomly arrange corners then adjust for parity
+            int[] cp = Enumerable.Range(0, NUM_CORNERS).OrderBy(_ => Guid.NewGuid()).ToArray();
+            if ((GetParity(ep) ^ GetParity(cp)) != 0)
+                (cp[0], cp[1]) = (cp[1], cp[0]);
+
+            // Assign random orientations (orientation of last cubie is dependent on previous cubies
+            int[] eo = Enumerable.Range(0, NUM_EDGES).Select(_ => random.Next(0, 2)).ToArray();
+            eo[NUM_EDGES - 1] = eo.Sum() % 2 == 0 ? eo.Last() : 1 - eo.Last();
+            int[] co = Enumerable.Range(0, NUM_CORNERS).Select(_ => random.Next(0, 3)).ToArray();
+            co[NUM_CORNERS - 1] = (co.Last() + 3 - (co.Sum() % 3)) % 3;
+
+            return new CubieCube(cp, co, ep, eo);
         }
     }
 }

@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using Cube_Solver.Cubes;
 
-namespace Cube_Solver.Solvers
+namespace Cube_Solver.Solver
 {
     using Face = Cube.Face;
     using Dir = Cube.Dir;
 
-    class Solver
+    class Search
     {
         private const int NUM_COS = 2187;   // 3^7 cases
         public const int NUM_ESLICE = 495; // 12C4 cases
@@ -29,7 +29,7 @@ namespace Cube_Solver.Solvers
         private IdCalculator idCalc;
 
         #region Generating pruning tables
-        public Solver(CubieCube solved)
+        public Search(CubieCube solved)
         {
             idCalc = new IdCalculator(solved);
 
@@ -75,12 +75,12 @@ namespace Cube_Solver.Solvers
         }
         #endregion
 
+        #region Kociemba
         private int maxDepth;
         private Stack<(CubieCube, int)> path;
 
         public void Solve(CubieCube cube)
         {
-
             path = new Stack<(CubieCube, int)>();
             path.Push((cube, -1));
             maxDepth = int.MaxValue;
@@ -152,5 +152,6 @@ namespace Cube_Solver.Solvers
 
             return (!movePairs.ContainsKey(prev) || movePairs[prev] != curr);
         }
+        #endregion
     }
 }

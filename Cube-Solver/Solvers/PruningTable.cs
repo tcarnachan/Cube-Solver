@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Cube_Solver.Solvers
+namespace Cube_Solver.Solver
 {
     class PruningTable
     {

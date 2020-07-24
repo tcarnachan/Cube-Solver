@@ -1,4 +1,6 @@
-﻿namespace Cube_Solver.Cubes
+﻿using System;
+
+namespace Cube_Solver.Cubes
 {
     /// <summary>
     /// Abstract class storing useful values
@@ -12,6 +14,8 @@
 
         protected const int NUM_EDGES = 12;
         protected const int NUM_CORNERS = 8;
+
+        protected static Random random = new Random();
 
         public enum Face { U, L, F, R, B, D }
 
