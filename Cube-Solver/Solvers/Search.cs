@@ -29,8 +29,9 @@ namespace Cube_Solver.Solver
         private IdCalculator idCalc;
 
         #region Generating pruning tables
-        public Search(CubieCube solved)
+        public Search(string solvedState)
         {
+            CubieCube solved = new CubieCube(new FaceletCube(solvedState));
             idCalc = new IdCalculator(solved);
 
             // All moves are valid for phase 1
@@ -78,9 +79,11 @@ namespace Cube_Solver.Solver
         #region Kociemba
         private int maxDepth;
         private Stack<(CubieCube, int)> path;
+        public bool exit;
 
         public void Solve(CubieCube cube)
         {
+            exit = false;
             path = new Stack<(CubieCube, int)>();
             path.Push((cube, -1));
             maxDepth = int.MaxValue;
@@ -91,7 +94,7 @@ namespace Cube_Solver.Solver
 
         private void IDAStar(int depth, Func<CubieCube, int> Heur, Action EndFunc, List<(Cube.Face, Cube.Dir)> applicableMoves)
         {
-            if (depth < 0)
+            if (depth < 0 || exit)
                 return;
 
             CubieCube curr = path.Peek().Item1;

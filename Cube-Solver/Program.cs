@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Cube_Solver.Cubes;
 using Cube_Solver.Solver;
 
@@ -10,54 +11,40 @@ namespace Cube_Solver
         {
             string solved = "UUUUUUUUULLLLLLLLLFFFFFFFFFRRRRRRRRRBBBBBBBBBDDDDDDDDD";
 
-            #region Testing
-            FaceletCube fc = new FaceletCube(solved);
-            CubieCube cc = new CubieCube(fc);
-            Search solver = new Search(cc);
+            /* Test case:
+             * Input state: lflburfldfdrllururuflbffdlrbburrdublbudrbdufdfubrdlbdf
+             * Algorithm:   U' B' R2 B2 D' R2 U B2 U' B2 D' B2 F2 L R2 U2 B U2 B2 L2
+            */
 
-            cc = (CubieCube)ApplyAlgorithm(cc, "U L2 R2 D' L2 D R2 B2 L2 B2 D2 R2 B' R' B2 D' B L2 D' R' F'");
-            solver.Solve(cc);
+            Search search = new Search(solved);
 
-            /*
-            fc = new FaceletCube((CubieCube)cc);
-            fc.Print();
-
-            Console.ReadKey(true);*/
-            return;
-            #endregion
-
-            MenuItem[] menuItems = new MenuItem[] {
+            Menu interactMenu = new Menu(new MenuItem[]
+            {
                 new MenuItem("Interact with a solved cube", () => { Interact(new FaceletCube(solved)); }),
-                new MenuItem("Enter a custom cube state", () => { Interact(ReadCube()); }),
+                new MenuItem("Interact with a random cube", () => { Interact(new FaceletCube(CubieCube.RandomCube())); }),
+                new MenuItem("Interact with a custom cube", () => { Interact(ReadCube()); })
+            });
+
+            Menu mainMenu = new Menu(new MenuItem[]
+            {
+                new MenuItem("Interact with a cube", () => { interactMenu.Update(); }),
+                new MenuItem("Solve a cube", () =>
+                {
+                    FaceletCube cube = (FaceletCube)ReadCube();
+                    Console.Clear();
+                    Console.WriteLine("Press any key to exit");
+
+                    // Start solving on a separate thread
+                    new Thread(() => { search.Solve(new CubieCube(cube)); }).Start();
+                    // Exit thread on key press
+                    Console.ReadKey();
+                    search.exit = true;
+                }),
                 new MenuItem("Quit", () => { Environment.Exit(0); })
-            };
+            }); ;
 
             while (true)
-            {
-                DisplayMenu(menuItems);
-                menuItems[ReadInt(1, menuItems.Length) - 1].function();
-            }
-        }
-
-        private static Cube ApplyAlgorithm(Cube cube, string algorithm)
-        {
-            foreach(string s in algorithm.Split(' '))
-            {
-                Cube.Face f = (Cube.Face)Cube.FACE_CHARS.IndexOf(s[0]);
-                if (s.Length == 1)
-                    cube = cube.ApplyMove(f, Cube.Dir.CW);
-                else
-                    cube = cube.ApplyMove(f, (Cube.Dir)" 2'".IndexOf(s[1]));
-            }
-            return cube;
-        }
-
-        private static void DisplayMenu(MenuItem[] menuItems)
-        {
-            Console.Clear();
-            for (int i = 0; i < menuItems.Length; i++)
-                Console.WriteLine($" [{i + 1}] {menuItems[i].message}");
-            Console.Write("Select an option: ");
+                mainMenu.Update();
         }
 
         private static void Interact(Cube cube)
@@ -67,7 +54,7 @@ namespace Cube_Solver
                 Console.Clear();
                 cube.Print();
 
-                Console.WriteLine("Enter a cube face to apply a move [ULFRBD]\nor press ESC to go back");
+                Console.WriteLine("Enter a cube face to apply a move [ULFRBD]\nor press ESC to exit");
                 ConsoleKey key = Console.ReadKey(true).Key;
                 if (key == ConsoleKey.Escape)
                     return;
@@ -80,19 +67,22 @@ namespace Cube_Solver
             }
         }
 
-        private static int ReadInt(int min, int max)
-        {
-            string input = Console.ReadLine();
-            int res;
-            while (!int.TryParse(input, out res) || res < min || res > max)
-            {
-                Console.WriteLine($"Please enter a valid integer between {min} and {max}");
-                input = Console.ReadLine();
-            }
-            
-            return res;
-        }
-
+        /*
+          The stickers are input in the following order (holding a fixed orientation)
+                   .----------.
+                   | 0  1  2  |
+			       | 3  4  5  |
+			       | 6  7  8  |
+		.----------+----------+----------.----------.
+		|  9 10 11 | 18 19 20 | 27 28 29 | 36 37 38 |
+		| 12 13 14 | 21 22 23 | 30 31 32 | 39 40 41 |
+		| 15 16 17 | 24 25 26 | 33 34 35 | 42 43 44 |
+        '----------+----------+----------'----------'
+			       | 45 46 47 |
+			       | 48 49 50 |
+                   | 51 52 53 |
+                   '----------'
+         */
         private static Cube ReadCube()
         {
             while(true)
@@ -110,18 +100,6 @@ namespace Cube_Solver
                     Console.WriteLine(e.Message);
                 }
             }
-        }
-    }
-
-    struct MenuItem
-    {
-        public string message;
-        public Action function;
-
-        public MenuItem(string message, Action function)
-        {
-            this.message = message;
-            this.function = function;
         }
     }
 }
