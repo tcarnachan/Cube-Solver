@@ -16,7 +16,7 @@ namespace Cube_Solver
              * Algorithm:   U' B' R2 B2 D' R2 U B2 U' B2 D' B2 F2 L R2 U2 B U2 B2 L2
             */
 
-            Search search = new Search(solved);
+            Search search = new Search(solved, "res/", Console.WriteLine);
 
             Menu interactMenu = new Menu(new MenuItem[]
             {
@@ -35,7 +35,7 @@ namespace Cube_Solver
                     Console.WriteLine("Press any key to exit");
 
                     // Start solving on a separate thread
-                    new Thread(() => { search.Solve(new CubieCube(cube)); }).Start();
+                    new Thread(() => { search.Solve(cube.ToString()); }).Start();
                     // Exit thread on key press
                     Console.ReadKey();
                     search.exit = true;
@@ -85,7 +85,7 @@ namespace Cube_Solver
          */
         private static Cube ReadCube()
         {
-            while(true)
+            while (true)
             {
                 Console.Write("Enter a cube state: ");
                 string input = Console.ReadLine();
