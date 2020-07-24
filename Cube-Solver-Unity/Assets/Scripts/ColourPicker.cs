@@ -10,19 +10,23 @@ public class ColourPicker : MonoBehaviour
     // Colour buttons
     public Image[] colours;
 
+    private Color defaultColour;
+
     private void Start()
     {
         // Add listeners to all facelets on the cube map
         foreach(Transform face in map)
         {
             foreach(Transform facelet in face)
-                facelet.gameObject.AddComponent<Button>().onClick.AddListener(() => PlaceColour(facelet));
+                facelet.gameObject.AddComponent<Button>().onClick.AddListener(() => PlaceColour(facelet, selected));
         }
         // Add listeners to all colour buttons
         foreach (Image img in colours)
             img.gameObject.AddComponent<Button>().onClick.AddListener(() => SelectColour(img));
         // Initialise selected colour
         selected = colours[0].color;
+        // Get default colour
+        defaultColour = map.GetComponentInChildren<Image>().color;
     }
 
     private void SelectColour(Image img)
@@ -30,8 +34,17 @@ public class ColourPicker : MonoBehaviour
         selected = img.color;
     }
 
-    private void PlaceColour(Transform img)
+    private void PlaceColour(Transform img, Color colour)
     {
-        img.GetComponent<Image>().color = selected;
+        img.GetComponent<Image>().color = colour;
+    }
+
+    public void ClearColours()
+    {
+        foreach(Transform face in map)
+        {
+            foreach (Transform facelet in face)
+                PlaceColour(facelet, defaultColour);
+        }
     }
 }
