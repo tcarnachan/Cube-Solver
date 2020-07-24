@@ -1,4 +1,4 @@
-# 2x2 and 3x3 Rubik's cube solver for Computer Science A-Level NEA
+# Rubik's cube solver for Computer Science A-Level NEA
 
 ## Finished minimum viable product
 1. The user can input the state of their cube via the command line
