@@ -1,7 +1,9 @@
 ﻿using Cube_Solver.Solver;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,7 +14,11 @@ public class Menu : MonoBehaviour
     public Text solutionText;
     private Search search;
 
+    public GameObject errorDisplay;
+    public Text errorText;
+
     private Queue<string> cb = new Queue<string>();
+    private string error = null;
 
     private void Start()
     {
@@ -23,6 +29,12 @@ public class Menu : MonoBehaviour
     {
         if (cb.Count > 0)
             solutionText.text += cb.Dequeue() + "\n\n";
+        if(error != null)
+        {
+            errorText.text = error;
+            errorDisplay.SetActive(true);
+            error = null;
+        }
     }
 
     public void Clear()
@@ -46,7 +58,17 @@ public class Menu : MonoBehaviour
         string state = new string(colours.Select(c => colour2char[c]).ToArray());
 
         // Start solver
-        new Thread(() => search.Solve(state)).Start();
+        new Thread(() =>
+        {
+            try
+            {
+                search.Solve(state);
+            }
+            catch(Exception e)
+            {
+                error = e.Message;
+            }
+        }).Start();
     }
 
     public void Exit()
