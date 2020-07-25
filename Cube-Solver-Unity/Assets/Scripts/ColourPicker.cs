@@ -13,6 +13,8 @@ public class ColourPicker : MonoBehaviour
 
     private Color defaultColour;
 
+    public ColourPallette colourPallette;
+
     private void Start()
     {
         // Add listeners to all facelets on the cube map
@@ -23,7 +25,10 @@ public class ColourPicker : MonoBehaviour
         }
         // Add listeners to all colour buttons
         foreach (Image img in colours)
+        {
             img.gameObject.AddComponent<Button>().onClick.AddListener(() => SelectColour(img));
+            img.gameObject.AddComponent<OpenColourPallette>().cp = colourPallette;
+        }
         // Initialise selected colour
         selected = colours[0].color;
         // Get default colour
