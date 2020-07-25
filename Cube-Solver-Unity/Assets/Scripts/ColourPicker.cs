@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class ColourPicker : MonoBehaviour
@@ -46,5 +47,16 @@ public class ColourPicker : MonoBehaviour
             foreach (Transform facelet in face)
                 PlaceColour(facelet, defaultColour);
         }
+    }
+
+    public Color[] GetColours()
+    {
+        List<Color> colours = new List<Color>();
+        foreach(Transform face in map)
+        {
+            foreach (Transform facelet in face)
+                colours.Add(facelet.GetComponent<Image>().color);
+        }
+        return colours.ToArray();
     }
 }
