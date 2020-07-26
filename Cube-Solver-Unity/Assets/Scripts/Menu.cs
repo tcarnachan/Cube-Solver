@@ -1,9 +1,7 @@
 ﻿using Cube_Solver.Solver;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,7 +26,11 @@ public class Menu : MonoBehaviour
     private void Update()
     {
         if (cb.Count > 0)
-            solutionText.text += cb.Dequeue() + "\n\n";
+        {
+            if (solutionText.text != "")
+                solutionText.text += "\n\n";
+            solutionText.text += cb.Dequeue();
+        }
         if(error != null)
         {
             errorText.text = error;
@@ -63,6 +65,7 @@ public class Menu : MonoBehaviour
             try
             {
                 search.Solve(state);
+                // search.Solve("wbrbwgbgyoywoogorbrroogbywybywwrwgbwgobgbygwyroryyrgro");
             }
             catch(Exception e)
             {
