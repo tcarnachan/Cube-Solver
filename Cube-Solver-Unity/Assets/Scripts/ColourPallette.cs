@@ -6,6 +6,7 @@ public class ColourPallette : MonoBehaviour
     public int bgWidth, bgHeight;
     public int palletteWidth, palleteHeight;
 
+    public Slider slider;
     public RawImage background;
     public Image handle;
     
@@ -16,11 +17,9 @@ public class ColourPallette : MonoBehaviour
     public Image oldColour, newColour;
     public Image targetImage;
 
-    public float h { get; private set; }
-    public float s { get; private set; }
-    public float v { get; private set; }
+    private float h, s, v;
 
-    private void Start()
+    private void OnEnable()
     {
         // Initialise slider background
         Texture2D tex = new Texture2D(bgWidth, bgHeight);
@@ -39,9 +38,9 @@ public class ColourPallette : MonoBehaviour
         slider2d.OnXChange = (f) => { s = f; };
         slider2d.OnYChange = (f) => { v = f; };
 
-        SetH(0);
-        s = .5f;
-        v = .5f;
+        Color.RGBToHSV(oldColour.color, out h, out s, out v);
+        SetH(h);
+        slider2d.SetHandlePosition(s, v);
     }
 
     private void Update()
@@ -51,6 +50,7 @@ public class ColourPallette : MonoBehaviour
 
     public void SetH(float value)
     {
+        slider.value = value;
         handle.color = Color.HSVToRGB(value, 1.0f, 1.0f);
         h = value;
 
