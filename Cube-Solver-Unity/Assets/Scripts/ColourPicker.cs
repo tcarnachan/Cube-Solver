@@ -54,6 +54,20 @@ public class ColourPicker : MonoBehaviour
         }
     }
 
+    public void UpdateColour(Image targetImage, Color newColour)
+    {
+        foreach(Transform face in map)
+        {
+            foreach(Transform facelet in face)
+            {
+                Image img = facelet.GetComponent<Image>();
+                if (img.color == targetImage.color)
+                    img.color = newColour;
+            }
+        }
+        targetImage.color = newColour;
+    }
+
     public Color[] GetColours()
     {
         List<Color> colours = new List<Color>();

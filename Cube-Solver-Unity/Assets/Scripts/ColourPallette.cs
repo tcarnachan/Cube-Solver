@@ -17,6 +17,8 @@ public class ColourPallette : MonoBehaviour
     public Image oldColour, newColour;
     public Image targetImage;
 
+    public ColourPicker cp;
+
     private float h, s, v;
 
     private void OnEnable()
@@ -64,7 +66,7 @@ public class ColourPallette : MonoBehaviour
 
     public void Close()
     {
-        targetImage.color = Color.HSVToRGB(h, s, v);
+        cp.UpdateColour(targetImage, Color.HSVToRGB(h, s, v));
         gameObject.SetActive(false);
     }
 }
