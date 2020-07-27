@@ -20,8 +20,11 @@ public class ColourPicker : MonoBehaviour
         // Add listeners to all facelets on the cube map
         foreach(Transform face in map)
         {
-            foreach(Transform facelet in face)
-                facelet.gameObject.AddComponent<Button>().onClick.AddListener(() => PlaceColour(facelet, selected));
+            foreach (Transform facelet in face)
+            {
+                if(facelet.name != "4") // Cannot change centre piece
+                    facelet.gameObject.AddComponent<Button>().onClick.AddListener(() => PlaceColour(facelet, selected));
+            }
         }
         // Add listeners to all colour buttons
         foreach (Image img in colours)

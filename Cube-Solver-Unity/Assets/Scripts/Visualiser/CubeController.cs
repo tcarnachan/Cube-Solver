@@ -1,6 +1,9 @@
-﻿using System.Collections;
+﻿using Cube_Solver.Cubes;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class CubeController : MonoBehaviour
@@ -21,7 +24,7 @@ public class CubeController : MonoBehaviour
     // Speed to animate rotation
     private float rotSpeed = 5.0f;
 
-    private string algorithmText = "F U' L' B2 L' D2 L' R2 B2 D2 R B2 R' D R2 B L' R2 F2 L'";
+    private string algorithmText;
     private int nextMove = 0;
     private string[] algorithm;
     public Transform algorithmDisplay;
@@ -47,8 +50,11 @@ public class CubeController : MonoBehaviour
         pivot = new GameObject("Pivot").transform;
         pivot.SetParent(transform);
 
+        algorithmText = PlayerPrefs.GetString("alg");
         InitAlgorithm();
         defaultColour = moveTextPrefab.GetComponent<Text>().color;
+
+        Setup(algorithm);
     }
 
     private void InitAlgorithm()
@@ -58,6 +64,23 @@ public class CubeController : MonoBehaviour
         {
             GameObject moveText = Instantiate(moveTextPrefab, algorithmDisplay);
             moveText.GetComponent<Text>().text = move;
+        }
+    }
+
+    private void Setup(string[] alg)
+    {
+        foreach(string s in alg.Reverse())
+        {
+            string inverse = s;
+            if (inverse.Length == 1) inverse += "'";
+            else if (inverse[1] == '\'') inverse = inverse[0].ToString();
+            ParseMove(inverse);
+        }
+
+        while(moves.Count > 0)
+        {
+            var m = moves.Dequeue();
+            StartCoroutine(RotateLayer(m.layer, m.cw, false));
         }
     }
 
@@ -73,6 +96,17 @@ public class CubeController : MonoBehaviour
             else if (playing)
                 Step();
         }
+
+        // Keyboard controls
+        if(!playing)
+        {
+            if (Input.GetKeyDown(KeyCode.RightArrow))
+                Step();
+            else if (Input.GetKeyDown(KeyCode.LeftArrow))
+                Undo();
+        }
+        if (Input.GetKeyDown(KeyCode.Space))
+            Play();
     }
 
     public void Undo()
@@ -95,7 +129,11 @@ public class CubeController : MonoBehaviour
     public void Step()
     {
         if (nextMove == algorithm.Length)
+        {
+            if(playing)
+                Play();
             return;
+        }
         if(nextMove != 0)
             algorithmDisplay.GetChild(nextMove - 1).GetComponent<Text>().color = defaultColour;
         algorithmDisplay.GetChild(nextMove).GetComponent<Text>().color = highlightColour;
@@ -129,7 +167,12 @@ public class CubeController : MonoBehaviour
             moves.Enqueue((layer, false));
     }
 
-    IEnumerator RotateLayer(Layer layer, bool cw)
+    public void Back()
+    {
+        SceneManager.LoadSceneAsync("Main");
+    }
+
+    IEnumerator RotateLayer(Layer layer, bool cw, bool animate = true)
     {
         rotating = true;
 
@@ -148,7 +191,7 @@ public class CubeController : MonoBehaviour
         Vector3 rotAxis = Vector3.zero;
         rotAxis[axis] = mul;
         Quaternion target = Quaternion.AngleAxis(90 * (cw ? 1 : -1), rotAxis);
-        for(float t = 0f; t <= 1f; t += rotSpeed * Time.deltaTime)
+        for(float t = 0f; t <= 1f && animate; t += rotSpeed * Time.deltaTime)
         {
             pivot.localRotation = Quaternion.Slerp(Quaternion.identity, target, t);
             yield return null;

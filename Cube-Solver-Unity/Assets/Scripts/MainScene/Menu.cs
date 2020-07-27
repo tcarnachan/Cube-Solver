@@ -5,11 +5,13 @@ using System.Linq;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Menu : MonoBehaviour
 {
     public ColourPicker colourPicker;
-    public Text solutionText;
+    public Transform solutionDisplay;
+    public GameObject algText;
     private Search search;
 
     public GameObject errorDisplay;
@@ -27,9 +29,14 @@ public class Menu : MonoBehaviour
     {
         if (cb.Count > 0)
         {
-            if (solutionText.text != "")
-                solutionText.text += "\n\n";
-            solutionText.text += cb.Dequeue();
+            GameObject alg = Instantiate(algText, solutionDisplay);
+            alg.GetComponent<Text>().text = cb.Dequeue();
+            alg.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                string text = alg.GetComponent<Text>().text;
+                PlayerPrefs.SetString("alg", text.Substring(0, text.IndexOf('(') - 1));
+                SceneManager.LoadScene("Visualiser");
+            });
         }
         if(error != null)
         {
@@ -65,7 +72,6 @@ public class Menu : MonoBehaviour
             try
             {
                 search.Solve(state);
-                // search.Solve("wbrbwgbgyoywoogorbrroogbywybywwrwgbwgobgbygwyroryyrgro");
             }
             catch(Exception e)
             {
@@ -83,6 +89,7 @@ public class Menu : MonoBehaviour
     private void EndSolver()
     {
         search.exit = true;
-        solutionText.text = "";
+        while (solutionDisplay.childCount > 0)
+            Destroy(solutionDisplay.GetChild(0).gameObject);
     }
 }
