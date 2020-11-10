@@ -15,7 +15,7 @@ namespace Cube_Solver.Cubes
         protected const int NUM_EDGES = 12;
         protected const int NUM_CORNERS = 8;
 
-        protected static Random random = new Random();
+        protected static Random random = new Random(0);
 
         public enum Face { U, L, F, R, B, D }
 
@@ -38,27 +38,93 @@ namespace Cube_Solver.Cubes
 
         public abstract void Print();
 
-        protected enum Corner { ULB, UBR, URF, UFL, DBL, DRB, DFR, DLF }
-
-        public enum Edge { UB, UR, UF, UL, DB, DR, DF, DL, BL, BR, FR, FL }
-
-        protected static readonly (Face f, int r, int c)[,] cornerPieces =
+        protected static (int f, int r, int c)[] GetCorner(int cubie)
         {
-            { (Face.U, 0, 0), (Face.L, 0, 0), (Face.B, 0, 2) },
-            { (Face.U, 0, 2), (Face.B, 0, 0), (Face.R, 0, 2) },
-            { (Face.U, 2, 2), (Face.R, 0, 0), (Face.F, 0, 2) },
-            { (Face.U, 2, 0), (Face.F, 0, 0), (Face.L, 0, 2) },
-            { (Face.D, 2, 0), (Face.B, 2, 2), (Face.L, 2, 0) },
-            { (Face.D, 2, 2), (Face.R, 2, 2), (Face.B, 2, 0) },
-            { (Face.D, 0, 2), (Face.F, 2, 2), (Face.R, 2, 0) },
-            { (Face.D, 0, 0), (Face.L, 2, 2), (Face.F, 2, 0) }
-        };
+            int[] faces = GetCornerFaces(cubie);
+            int t = (cubie / 4) * 2;
+            (int x, int y) udCoord = (t, 0);
+            for (int i = 0; i < cubie % 4; i++)
+                udCoord = Rotate(udCoord, t == 0);
+            return new (int, int, int)[]
+            {
+                (faces[0], udCoord.x, udCoord.y),
+                (faces[1], t, t),
+                (faces[2], t, 2 - t)
+            };
+        }
 
-        protected static readonly (Face f, int r, int c)[,] edgePieces =
+        protected static int[] GetCornerFaces(int cubie)
         {
-            { (Face.U, 0, 1), (Face.B, 0, 1) }, { (Face.U, 1, 2),  (Face.R, 0, 1) }, { (Face.U, 2, 1), (Face.F, 0, 1) }, { (Face.U, 1, 0), (Face.L, 0, 1) },
-            { (Face.D, 2, 1), (Face.B, 2, 1) }, { (Face.D, 1, 2),  (Face.R, 2, 1) }, { (Face.D, 0, 1), (Face.F, 2, 1) }, { (Face.D, 1, 0), (Face.L, 2, 1) },
-            { (Face.B, 1, 2), (Face.L, 1, 0) }, { (Face.B, 1, 0),  (Face.R, 1, 2) }, { (Face.F, 1, 2), (Face.R, 1, 0) }, { (Face.F, 1, 0), (Face.L, 1, 2) }
-        };
+            int t = cubie / 4;
+            return new int[]
+            {
+                t * 5,
+                (8 - cubie - t) % 4 + 1,
+                (7 - cubie + t) % 4 + 1
+            };
+        }
+
+        protected static (int f, int r, int c)[] GetEdge(int cubie)
+        {
+            int[] faces = GetEdgeFaces(cubie);
+            // U/D faces
+            if (cubie < 8)
+            {
+                int t = cubie / 4 * 2;
+                (int x, int y) udCoord = (t, 1);
+                for (int i = 0; i < cubie % 4; i++)
+                    udCoord = Rotate(udCoord, t == 0);
+                return new (int, int, int)[]
+                {
+                    (faces[0], udCoord.x, udCoord.y),
+                    (faces[1], t, 1)
+                };
+            }
+            // Middle layer
+            else
+            {
+                int t = (cubie - 8) % 2;
+                return new (int, int, int)[]
+                {
+                    (faces[0], 1, 2 * (1 - t)),
+                    (faces[1], 1, 2 * t)
+                };
+            }
+        }
+
+        // Rotates (x, y) around (1, 1)
+        private static (int, int) Rotate((int x, int y) coord, bool cw)
+        {
+            // Clockwise
+            if (cw)
+                return (coord.y, 2 - coord.x);
+            // Counter-clockwise
+            else
+                return (2 - coord.y, coord.x);
+
+        }
+
+        protected static int[] GetEdgeFaces(int cubie)
+        {
+            // U/D faces
+            if (cubie < 8)
+            {
+                return new int[]
+                {
+                    cubie / 4 * 5,
+                    (7 - cubie) % 4 + 1
+                };
+            }
+            // Middle layer
+            else
+            {
+                int t = cubie - 8;
+                return new int[]
+                {
+                    4 - t / 2 * 2, // B, B, F, F
+                    (t + 1) / 2 % 2 * 2 + 1 // L, R, R, L
+                };
+            }
+        }
     }
 }

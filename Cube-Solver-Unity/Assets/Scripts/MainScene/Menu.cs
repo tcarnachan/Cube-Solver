@@ -46,6 +46,16 @@ public class Menu : MonoBehaviour
         }
     }
 
+    public void Solved()
+    {
+        colourPicker.SolvedColours();
+    }
+
+    public void Random()
+    {
+        colourPicker.SetColours(search.RandomCube().Replace(" ", ""));
+    }
+
     public void Clear()
     {
         EndSolver();

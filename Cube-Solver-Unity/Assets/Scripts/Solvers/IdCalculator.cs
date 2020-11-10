@@ -8,6 +8,7 @@ namespace Cube_Solver.Solver
         private int[] onesLookup = new int[Search.NUM_CPS];
         private Dictionary<int, int> eslice2ix = new Dictionary<int, int>();
         private int[] factorials;
+        private const int BL = 8;
 
         public IdCalculator(CubieCube solved)
         {
@@ -67,8 +68,8 @@ namespace Cube_Solver.Solver
             int esp = 0;
             for (int i = 0; i < cc.ep.Length - 1; ++i)
             {
-                if ((int)Cube.Edge.BL <= cc.ep[i] && cc.ep[i] <= (int)Cube.Edge.FL)
-                    esp |= (1 << i);
+                if (BL <= cc.ep[i])
+                    esp |= 1 << i;
             }
             return eslice2ix[esp];
         }
@@ -96,7 +97,6 @@ namespace Cube_Solver.Solver
             }
             id *= 24;
             seen = 0;
-            int BL = (int)Cube.Edge.BL;
             for (int i = 0; i < 3; ++i)
             {
                 seen |= 1 << (3 - cc.ep[i + BL] + BL);

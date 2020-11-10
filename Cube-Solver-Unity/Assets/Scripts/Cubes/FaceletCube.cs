@@ -72,8 +72,8 @@ namespace Cube_Solver.Cubes
                 int ori = cc.co[i];
                 for (int j = 0; j < 3; j++)
                 {
-                    var pos = cornerPieces[i, j];
-                    faces[(int)pos.f][pos.r, pos.c] = cornerPieces[cc.cp[i], (j + 3 - ori) % 3].f;
+                    var pos = GetCorner(i)[j];
+                    faces[pos.f][pos.r, pos.c] = (Face)GetCornerFaces(cc.cp[i])[(j + 3 - ori) % 3];
                 }
             }
             // Set edges
@@ -82,8 +82,8 @@ namespace Cube_Solver.Cubes
                 int ori = cc.eo[i];
                 for (int j = 0; j < 2; j++)
                 {
-                    var pos = edgePieces[i, j];
-                    faces[(int)pos.f][pos.r, pos.c] = edgePieces[cc.ep[i], (j + ori) % 2].f;
+                    var pos = GetEdge(i)[j];
+                    faces[(int)pos.f][pos.r, pos.c] = (Face)GetEdgeFaces(cc.ep[i])[(j + ori) % 2];
                 }
             }
         }
@@ -98,7 +98,7 @@ namespace Cube_Solver.Cubes
             {
                 int count = 0;
                 foreach (Face[,] face in faces)
-                    count += Enumerable.Range(0, DIM_SQR).Count(i => face[i / 3, i % 3] == f);
+                    count += Enumerable.Range(0, DIM_SQR).Count(i => face[i / DIM, i % DIM] == f);
                 if (count != DIM_SQR) return "Incorrect number of individual facelets";
             }
             return VALID_STATE;
@@ -109,7 +109,7 @@ namespace Cube_Solver.Cubes
             foreach (Face f in Enum.GetValues(typeof(Face)))
             {
                 Face[,] face = faces[(int)f];
-                if (Enumerable.Range(0, DIM_SQR).Any(i => face[i / 3, i % 3] != f))
+                if (Enumerable.Range(0, DIM_SQR).Any(i => face[i / DIM, i % DIM] != f))
                     return false;
             }
             return true;

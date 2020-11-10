@@ -164,5 +164,12 @@ namespace Cube_Solver.Solver
             return (!movePairs.ContainsKey(prev) || movePairs[prev] != curr);
         }
         #endregion
+
+        public string RandomCube()
+        {
+            CubieCube cc = CubieCube.RandomCube();
+            FaceletCube fc = new FaceletCube(cc);
+            return fc.ToString();
+        }
     }
 }

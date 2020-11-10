@@ -8,7 +8,7 @@ namespace Cube_Solver.Solver
 {
     class PruningTable
     {
-        byte[] table;
+        private byte[] table;
 
         public PruningTable(string filepath)
         {

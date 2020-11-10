@@ -56,22 +56,12 @@ namespace Cube_Solver.Cubes
             // For each corner position
             for (int i = 0; i < NUM_CORNERS; i++)
             {
-                Face[] c = new Face[]
-                {
-                    GetFacelet(fc, cornerPieces[i, 0]),
-                    GetFacelet(fc, cornerPieces[i, 1]),
-                    GetFacelet(fc, cornerPieces[i, 2])
-                };
+                int[] c = GetCorner(i).Select(_c => GetFacelet(fc, _c)).ToArray();
                 // For every corner cubie
                 int ori = -1, j;
                 for(j = 0; j < NUM_CORNERS && ori == -1; j++)
                 {
-                    Face[] f = new Face[]
-                    {
-                        cornerPieces[j, 0].f,
-                        cornerPieces[j, 1].f,
-                        cornerPieces[j, 2].f
-                    };
+                    int[] f = GetCornerFaces(j);
                     // Check if it is oriented
                     if (c[0] == f[0] && c[1] == f[1] && c[2] == f[2])
                         ori = 0;
@@ -83,30 +73,22 @@ namespace Cube_Solver.Cubes
                         ori = 2;
                 }
                 if (ori == -1)
-                    throw new Exception($"Corner {c[0]}{c[1]}{c[2]} not found");
+                    throw new Exception($"Corner {(Face)c[0]}{(Face)c[1]}{(Face)c[2]} not found");
 
                 // At corner position i is corner cubie j
-                cp[i] = (j - 1);
-                co[i] = (ori);
+                cp[i] = j - 1;
+                co[i] = ori;
             }
 
             // For each edge position
             for (int i = 0; i < NUM_EDGES; i++)
             {
-                Face[] e = new Face[]
-                {
-                    GetFacelet(fc, edgePieces[i, 0]),
-                    GetFacelet(fc, edgePieces[i, 1]),
-                };
+                int[] e = GetEdge(i).Select(_e => GetFacelet(fc, _e)).ToArray();
                 // For every corner cubie
                 int ori = -1, j;
                 for (j = 0; j < NUM_EDGES && ori == -1; j++)
                 {
-                    Face[] f = new Face[]
-                    {
-                        edgePieces[j, 0].f,
-                        edgePieces[j, 1].f,
-                    };
+                    int[] f = GetEdgeFaces(j);
                     // Check if it is oriented
                     if (e[0] == f[0] && e[1] == f[1])
                         ori = 0;
@@ -115,11 +97,11 @@ namespace Cube_Solver.Cubes
                         ori = 1;
                 }
                 if (ori == -1)
-                    throw new Exception($"Edge {e[0]}{e[1]} not found");
+                    throw new Exception($"Edge {(Face)e[0]}{(Face)e[1]} not found");
 
                 // At corner position i is corner cubie j
-                ep[i] = (j - 1);
-                eo[i] = (ori);
+                ep[i] = j - 1;
+                eo[i] = ori;
             }
 
             string err = Verify();
@@ -127,9 +109,9 @@ namespace Cube_Solver.Cubes
                 throw new Exception(err);
         }
 
-        private static Face GetFacelet(FaceletCube fc, (Face f, int r, int c) index)
+        private static int GetFacelet(FaceletCube fc, (int f, int r, int c) index)
         {
-            return fc.faces[(int)index.f][index.r, index.c];
+            return (int)fc.faces[index.f][index.r, index.c];
         }
 
         /// <summary>

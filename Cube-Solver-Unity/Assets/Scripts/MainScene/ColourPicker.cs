@@ -52,8 +52,22 @@ public class ColourPicker : MonoBehaviour
     {
         foreach(Transform face in map)
         {
+            for(int i = 0; i < face.childCount; i++)
+            {
+                if(i != face.childCount / 2)
+                    PlaceColour(face.GetChild(i), defaultColour);
+            }
+        }
+    }
+
+    public void SolvedColours()
+    {
+        foreach(Transform face in map)
+        {
+            Transform centre = face.GetChild(face.childCount / 2);
+            Color colour = centre.GetComponent<Image>().color;
             foreach (Transform facelet in face)
-                PlaceColour(facelet, defaultColour);
+                PlaceColour(facelet, colour);
         }
     }
 
@@ -69,6 +83,24 @@ public class ColourPicker : MonoBehaviour
             }
         }
         targetImage.color = newColour;
+    }
+
+    public void SetColours(string colours)
+    {
+        Dictionary<char, Color> colourLookup = new Dictionary<char, Color>();
+        string faces = "ULFRBD";
+        for (int i = 0; i < faces.Length; i++)
+        {
+            Transform f = map.GetChild(i);
+            colourLookup[faces[i]] = f.GetChild(f.childCount / 2).GetComponent<Image>().color;
+        }
+
+        int ix = 0;
+        foreach(Transform face in map)
+        {
+            foreach (Transform facelet in face)
+                PlaceColour(facelet, colourLookup[colours[ix++]]);
+        }
     }
 
     public Color[] GetColours()
