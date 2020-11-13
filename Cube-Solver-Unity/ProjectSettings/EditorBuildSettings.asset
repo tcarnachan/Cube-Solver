@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Visualiser.unity
     guid: ebb57006a864e6443b70b8b861213aa2
+  - enabled: 1
+    path: Assets/Scenes/Webcam.unity
+    guid: f004394e4b38946488933ce1e4b2ddcc
   m_configObjects: {}

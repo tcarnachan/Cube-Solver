@@ -83,7 +83,7 @@ public class Menu : MonoBehaviour
             {
                 search.Solve(state);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 error = e.Message;
             }
@@ -101,5 +101,10 @@ public class Menu : MonoBehaviour
         search.exit = true;
         while (solutionDisplay.childCount > 0)
             Destroy(solutionDisplay.GetChild(0).gameObject);
+    }
+
+    public void LoadWebcam()
+    {
+        SceneManager.LoadScene("Webcam");
     }
 }

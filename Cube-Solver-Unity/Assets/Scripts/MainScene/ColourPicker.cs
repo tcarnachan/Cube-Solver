@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,6 +15,11 @@ public class ColourPicker : MonoBehaviour
     private Color defaultColour;
 
     public ColourPallette colourPallette;
+
+    private void Awake()
+    {
+        ColourManager.instance.colours = colours.Select(img => img.color).ToArray();
+    }
 
     private void Start()
     {
@@ -36,6 +42,35 @@ public class ColourPicker : MonoBehaviour
         selected = colours[0].color;
         // Get default colour
         defaultColour = map.GetComponentInChildren<Image>().color;
+
+        // Check for webcam
+        string webcam = PlayerPrefs.GetString("webcam", string.Empty);
+        if (webcam != string.Empty)
+        {
+            // Parse colours
+            Color[] colours = webcam.Split().Select(i =>
+            {
+                /*string[] channels = c.Split(',');
+                return new Color(float.Parse(channels[0]), float.Parse(channels[1]), float.Parse(channels[2]));*/
+                if(int.Parse(i) >= 0)
+                    return ColourManager.instance.colours[int.Parse(i)];
+                return defaultColour;
+            }).ToArray();
+            // Update colours on map
+            int ix = 0;
+            foreach(Transform face in map)
+            {
+                foreach (Transform facelet in face)
+                {
+                    if (facelet.name != "4")
+                        facelet.GetComponent<Image>().color = colours[ix++];
+                    else
+                        ix++;
+                }
+            }
+            // Reset webcam
+            PlayerPrefs.SetString("webcam", string.Empty);
+        }
     }
 
     private void SelectColour(Image img)
