@@ -22,7 +22,7 @@ public class CubeController : MonoBehaviour
     // Whether or not the cube is currently executing a move
     private bool rotating = false;
     // Speed to animate rotation
-    private float rotSpeed = 5.0f;
+    public float rotSpeed = 5.0f;
 
     private string algorithmText;
     private int nextMove = 0;

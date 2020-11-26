@@ -95,27 +95,33 @@ namespace Cube_Solver.Solver
             path.Push((cube, -1));
             maxDepth = int.MaxValue;
 
-            for (int i = 0; i <= maxDepth; i++)
-                IDAStar(i, cc => Math.Max(coTable[idCalc.GetCO(cc)], eoTable[idCalc.GetEO(cc) * NUM_ESLICE + idCalc.GetEslice(cc)]), BeginPhase2, phase1moves);
+            for (int i = 0; i < maxDepth; i++)
+                Phase1(i);
         }
 
-        private void IDAStar(int depth, Func<CubieCube, int> Heur, Action EndFunc, List<(Cube.Face, Cube.Dir)> applicableMoves)
+        private void Phase1(int depth)
         {
-            if (depth < 0 || exit)
-                return;
+            if (exit) return;
 
             CubieCube curr = path.Peek().Item1;
-            if (Heur(curr) == 0)
-                EndFunc();
-            else if (Heur(curr) <= depth)
+            int heur = Math.Max(coTable[idCalc.GetCO(curr)], eoTable[idCalc.GetEO(curr) * NUM_ESLICE + idCalc.GetEslice(curr)]);
+            if (depth == 0)
             {
-                int prev = (path.Peek().Item2 / 3);
-                foreach (var move in applicableMoves)
+                int prevMove = path.Peek().Item2;
+                Face f = (Face)(prevMove / 3);
+                Dir d = (Dir)(prevMove % 3);
+                if (heur == 0 && (prevMove == -1 || !phase2moves.Contains((f, d))))
+                    BeginPhase2();
+            }
+            else if (heur <= depth)
+            {
+                int prev = path.Peek().Item2;
+                foreach (var move in phase1moves)
                 {
-                    if (prev == -1 || ValidMove((Face)prev, move.Item1))
+                    if (prev == -1 || ValidMove((Face)(prev / 3), move.Item1))
                     {
                         path.Push(((CubieCube)curr.ApplyMove(move.Item1, move.Item2), (int)move.Item1 * 3 + (int)move.Item2));
-                        IDAStar(depth - 1, Heur, EndFunc, applicableMoves);
+                        Phase1(depth - 1);
                         path.Pop();
                     }
                 }
@@ -124,12 +130,34 @@ namespace Cube_Solver.Solver
 
         private void BeginPhase2()
         {
-            int m = path.Peek().Item2;
             int len = path.Count;
-            if (!phase2moves.Contains(((Face)(m / 3), (Dir)(m % 3))))
+            for (int i = 0; i < maxDepth - len - 1; i++)
+                Phase2(i);
+        }
+
+        private void Phase2(int depth)
+        {
+            if (exit) return;
+
+            CubieCube curr = path.Peek().Item1;
+            int heur = Math.Max(cpTable[idCalc.GetCP(curr)], epTable[idCalc.GetEP(curr)]);
+            if (depth == 0)
             {
-                for (int i = 0; i <= maxDepth - len; i++)
-                    IDAStar(i, cc => Math.Max(cpTable[idCalc.GetCP(cc)], epTable[idCalc.GetEP(cc)]), EndPhase2, phase2moves);
+                if (heur == 0)
+                    EndPhase2();
+            }
+            else if (heur <= depth)
+            {
+                int prev = path.Peek().Item2;
+                foreach (var move in phase2moves)
+                {
+                    if (prev == -1 || ValidMove((Face)(prev / 3), move.Item1))
+                    {
+                        path.Push(((CubieCube)curr.ApplyMove(move.Item1, move.Item2), (int)move.Item1 * 3 + (int)move.Item2));
+                        Phase2(depth - 1);
+                        path.Pop();
+                    }
+                }
             }
         }
 
@@ -147,7 +175,7 @@ namespace Cube_Solver.Solver
             }
             Output($"{s}({len})");
             // Update maxDepth
-            maxDepth = len;
+            maxDepth = len - 2;
         }
 
         private Dictionary<Face, Face> movePairs = new Dictionary<Face, Face>
@@ -156,12 +184,13 @@ namespace Cube_Solver.Solver
             { Face.R, Face.L },
             { Face.U, Face.D }
         };
+
         private bool ValidMove(Face prev, Face curr)
         {
             if (prev == curr)
                 return false;
 
-            return (!movePairs.ContainsKey(prev) || movePairs[prev] != curr);
+            return !(movePairs.ContainsKey(prev) && movePairs[prev] == curr);
         }
         #endregion
 

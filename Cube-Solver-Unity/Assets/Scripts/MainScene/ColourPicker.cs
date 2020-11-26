@@ -18,7 +18,8 @@ public class ColourPicker : MonoBehaviour
 
     private void Awake()
     {
-        ColourManager.instance.colours = colours.Select(img => img.color).ToArray();
+        if(ColourManager.instance)
+            ColourManager.instance.colours = colours.Select(img => img.color).ToArray();
     }
 
     private void Start()
