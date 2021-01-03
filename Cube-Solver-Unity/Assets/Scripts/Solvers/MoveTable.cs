@@ -10,7 +10,7 @@ namespace Cube_Solver.Solver
     using Face = Cube.Face;
     using Dir = Cube.Dir;
 
-    class MoveTable
+    public class MoveTable
     {
         private Dictionary<Face, int[]> table;
 

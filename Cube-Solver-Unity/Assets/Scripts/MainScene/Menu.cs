@@ -1,4 +1,5 @@
-﻿using Cube_Solver.Solver;
+﻿using Cube_Solver.Cubes;
+using Cube_Solver.Solver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,8 @@ public class Menu : MonoBehaviour
 
     private void Start()
     {
-        search = new Search("000000000111111111222222222333333333444444444555555555", "Assets/Resources/", s => cb.Enqueue(s));
+        SearchTables st = new SearchTables(CubieCube.SolvedCube(), "Assets/Resources/", s => cb.Enqueue(s));
+        search = new Search(st);
     }
 
     private void Update()
@@ -53,7 +55,8 @@ public class Menu : MonoBehaviour
 
     public void Random()
     {
-        colourPicker.SetColours(search.RandomCube().Replace(" ", ""));
+        FaceletCube fc = new FaceletCube(CubieCube.RandomCube());
+        colourPicker.SetColours(fc.ToString().Replace(" ", ""));
     }
 
     public void Clear()

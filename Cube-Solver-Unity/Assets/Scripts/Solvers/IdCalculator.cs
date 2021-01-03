@@ -3,18 +3,18 @@ using System.Collections.Generic;
 
 namespace Cube_Solver.Solver
 {
-    class IdCalculator
+    public class IdCalculator
     {
-        private int[] onesLookup = new int[Search.NUM_CPS];
+        private int[] onesLookup = new int[SearchTables.NUM_CPS];
         private Dictionary<int, int> eslice2ix = new Dictionary<int, int>();
         private int[] factorials;
         private const int BL = 8;
 
         public IdCalculator(CubieCube solved)
         {
-            for (int i = 0; i < Search.NUM_CPS; i++)
+            for (int i = 0; i < SearchTables.NUM_CPS; i++)
                 onesLookup[i] = BitCount(i);
-            for (int i = 0, j = 0; i < Search.NUM_ESLICE; i++, j++)
+            for (int i = 0, j = 0; i < SearchTables.NUM_ESLICE; i++, j++)
             {
                 int bits = onesLookup[j];
                 while (bits != 3 && bits != 4)

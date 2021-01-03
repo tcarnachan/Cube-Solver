@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Cube_Solver.Solver
 {
-    class PruningTable
+    public class PruningTable
     {
         private byte[] table;
 
