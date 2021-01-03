@@ -232,6 +232,20 @@ namespace Cube_Solver.Cubes
 
             return new CubieCube(cp, co, ep, eo);
         }
+
+        public static CubieCube SolvedCube()
+        {
+            // Generate edges in order
+            int[] ep = Enumerable.Range(0, NUM_EDGES).ToArray();
+            // Generate corners in order
+            int[] cp = Enumerable.Range(0, NUM_CORNERS).ToArray();
+
+            // Orientations are all 0
+            int[] eo = new int[NUM_EDGES];
+            int[] co = new int[NUM_CORNERS];
+
+            return new CubieCube(cp, co, ep, eo);
+        }
     }
 }
 
