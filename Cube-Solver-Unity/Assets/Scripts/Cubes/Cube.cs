@@ -5,7 +5,7 @@ namespace Cube_Solver.Cubes
     /// <summary>
     /// Abstract class storing useful values
     /// </summary>
-    abstract class Cube
+    public abstract class Cube
     {
         protected const int NUM_FACES = 6;
         protected const int DIM = 3;

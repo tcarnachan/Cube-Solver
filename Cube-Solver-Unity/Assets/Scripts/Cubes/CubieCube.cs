@@ -9,7 +9,7 @@ namespace Cube_Solver.Cubes
     /// Each cubie has an orientation and a permutation.
     /// Cubies are split into corners and edges as they cannot change places.
     /// </summary>
-    class CubieCube : Cube
+    public class CubieCube : Cube
     {
         /// <summary>
         /// Corner orientations, 0 = oriented, 1 = twisted clockwise, 2 = twisted counter-clockwise.
@@ -29,7 +29,7 @@ namespace Cube_Solver.Cubes
         public int[] ep { get; private set; } = new int[NUM_EDGES];
 
         #region Cache move data
-        private static Dictionary<Face, MoveData> moveLookup = new Dictionary<Face, MoveData>();
+        private static Dictionary<Face, CubieCube> moveLookup = new Dictionary<Face, CubieCube>();
 
         private static bool initialised = false;
 
@@ -43,7 +43,7 @@ namespace Cube_Solver.Cubes
 
             Cube fc = new FaceletCube(solved);
             foreach (Face f in Enum.GetValues(typeof(Face)))
-                moveLookup[f] = new MoveData(new CubieCube((FaceletCube)fc.ApplyMove(f, Dir.CW)));
+                moveLookup[f] = new CubieCube((FaceletCube)fc.ApplyMove(f, Dir.CW));
         }
         #endregion
 
@@ -59,7 +59,7 @@ namespace Cube_Solver.Cubes
                 int[] c = GetCorner(i).Select(_c => GetFacelet(fc, _c)).ToArray();
                 // For every corner cubie
                 int ori = -1, j;
-                for(j = 0; j < NUM_CORNERS && ori == -1; j++)
+                for (j = 0; j < NUM_CORNERS && ori == -1; j++)
                 {
                     int[] f = GetCornerFaces(j);
                     // Check if it is oriented
@@ -139,9 +139,9 @@ namespace Cube_Solver.Cubes
             if (!initialised)
                 Initialise();
 
-            CubieCube res = moveLookup[f].ApplyMove(this);
+            CubieCube res = moveLookup[f].Multiply(this);
             for (int i = 0; i < (int)dir; i++)
-                res = moveLookup[f].ApplyMove(res);
+                res = moveLookup[f].Multiply(res);
 
             return res;
         }
@@ -171,9 +171,9 @@ namespace Cube_Solver.Cubes
         protected override string Verify()
         {
             // Check that each piece exists
-            for(int i = 0; i < NUM_CORNERS; i++)
+            for (int i = 0; i < NUM_CORNERS; i++)
             {
-                if(!cp.Contains(i))
+                if (!cp.Contains(i))
                     return "Missing corner piece";
             }
             for (int i = 0; i < NUM_EDGES; i++)
@@ -194,14 +194,15 @@ namespace Cube_Solver.Cubes
         private static int GetParity(int[] data)
         {
             int parity = 0;
-            for(int i = 0; i < data.Length; i++)
+            for (int i = 0; i < data.Length; i++)
             {
-                for(int j = 0; j < i; j++)
+                for (int j = 0; j < i; j++)
                 {
-                    if (data[j] > data[i]) parity++;
+                    if (data[j] > data[i])
+                        parity++;
                 }
             }
-            return parity % 2;
+            return parity % 2; // Only care if the parity is even or odd
         }
 
         public override bool IsSolved()
@@ -215,6 +216,65 @@ namespace Cube_Solver.Cubes
             return true;
         }
 
+        public CubieCube Multiply(CubieCube cc)
+        {
+            int[] ncp = new int[cp.Length], nco = new int[co.Length], nep = new int[ep.Length], neo = new int[eo.Length];
+
+            for (int i = 0; i < cp.Length; i++)
+                ncp[i] = cc.cp[cp[i]];
+
+            for (int i = 0; i < co.Length; i++) // Orientations of mirrored cubes have to be handled differently
+            {
+                int ori;
+                // Two normal cubes
+                if (cc.co[cp[i]] < 3 && co[i] < 3)
+                    ori = (cc.co[cp[i]] + co[i]) % 3;
+                // This cube is mirrored (or reflected)
+                else if (cc.co[cp[i]] < 3 && co[i] >= 3)
+                {
+                    ori = co[i] - cc.co[cp[i]];
+                    if (ori < 3) ori += 3; // Result is still mirrored
+                }
+                // The other cube is mirrored
+                else if (cc.co[cp[i]] >= 3 && co[i] < 3)
+                {
+                    ori = cc.co[cp[i]] + co[i];
+                    if (ori >= 6) ori -= 3; // Result is still mirrored
+                }
+                // Both cubes are mirrored
+                else
+                {
+                    ori = co[i] - cc.co[cp[i]];
+                    if (ori < 0) ori += 3; // Result is a normal cube
+                }
+                nco[i] = ori;
+            }
+
+            for (int i = 0; i < ep.Length; i++)
+                nep[i] = cc.ep[ep[i]];
+
+            for (int i = 0; i < eo.Length; i++)
+                neo[i] = (cc.eo[ep[i]] + eo[i]) % 2;
+
+            return new CubieCube(ncp, nco, nep, neo);
+        }
+
+        // Compare if this is the same as obj
+        public override bool Equals(object obj)
+        {
+            if (this == null || obj == null)
+                return false;
+            CubieCube other = (CubieCube)obj;
+            return ep.SequenceEqual(other.ep) && eo.SequenceEqual(other.eo) &&
+                cp.SequenceEqual(other.cp) && co.SequenceEqual(other.co);
+        }
+
+        // Required if Equals is defined
+        public override int GetHashCode()
+        {
+            return ep.Concat(eo).Concat(cp).Concat(co).Aggregate(17, (acc, val) => acc * 31 + val);
+        }
+
         public static CubieCube RandomCube()
         {
             // Randomly arrange the edges
@@ -224,13 +284,36 @@ namespace Cube_Solver.Cubes
             if ((GetParity(ep) ^ GetParity(cp)) != 0)
                 (cp[0], cp[1]) = (cp[1], cp[0]);
 
-            // Assign random orientations (orientation of last cubie is dependent on previous cubies
+            // Assign random orientations (orientation of last cubie is dependent on previous cubies)
             int[] eo = Enumerable.Range(0, NUM_EDGES).Select(_ => random.Next(0, 2)).ToArray();
             eo[NUM_EDGES - 1] = eo.Sum() % 2 == 0 ? eo.Last() : 1 - eo.Last();
             int[] co = Enumerable.Range(0, NUM_CORNERS).Select(_ => random.Next(0, 3)).ToArray();
             co[NUM_CORNERS - 1] = (co.Last() + 3 - (co.Sum() % 3)) % 3;
 
             return new CubieCube(cp, co, ep, eo);
+        }
+
+        public CubieCube InverseCube()
+        {
+            int[] invEP = new int[NUM_EDGES], invCP = new int[NUM_CORNERS];
+            int[] invEO = new int[NUM_EDGES], invCO = new int[NUM_CORNERS];
+
+            for (int i = 0; i < NUM_EDGES; i++)
+                invEP[ep[i]] = i;
+            for (int i = 0; i < NUM_EDGES; i++)
+                invEO[i] = eo[invEP[i]];
+
+            for (int i = 0; i < NUM_CORNERS; i++)
+                invCP[cp[i]] = i;
+            for (int i = 0; i < NUM_CORNERS; i++)
+            {
+                if (co[invCP[i]] >= 3)
+                    invCO[i] = co[invCP[i]];
+                else
+                    invCO[i] = (3 - co[invCP[i]]) % 3;
+            }
+
+            return new CubieCube(invCP, invCO, invEP, invEO);
         }
 
         public static CubieCube SolvedCube()
@@ -248,4 +331,3 @@ namespace Cube_Solver.Cubes
         }
     }
 }
-

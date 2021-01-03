@@ -8,7 +8,7 @@ namespace Cube_Solver.Cubes
     /// Represents a cube on the facelet level.
     /// Each facelet on the cube is stored in a char[][][] which is accessed by [FACE][Row][Col].
     /// </summary>
-    class FaceletCube : Cube
+    public class FaceletCube : Cube
     {
         public Face[][,] faces { get; private set; }
 
