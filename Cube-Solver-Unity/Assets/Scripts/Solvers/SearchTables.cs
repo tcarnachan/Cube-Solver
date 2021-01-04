@@ -34,11 +34,12 @@ namespace Cube_Solver.Solver
         private string resourcePath;
         public Action<string> Output;
 
-        public SearchTables(CubieCube solved, string resourcePath, Action<string> Output)
+        public SearchTables(string resourcePath, Action<string> Output)
         {
             this.resourcePath = resourcePath;
             this.Output = Output;
 
+            CubieCube solved = CubieCube.SolvedCube();
             idCalc = new IdCalculator(solved);
 
             // All moves are valid for phase 1

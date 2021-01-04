@@ -1,9 +1,10 @@
 ﻿using Cube_Solver.Cubes;
 using Cube_Solver.Solver;
-using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -13,18 +14,21 @@ public class Menu : MonoBehaviour
     public ColourPicker colourPicker;
     public Transform solutionDisplay;
     public GameObject algText;
-    private Search search;
+
+    private List<Task> tasks;
+    private CancellationTokenSource tokenSource;
+    private SearchTables st;
 
     public GameObject errorDisplay;
     public Text errorText;
 
     private Queue<string> cb = new Queue<string>();
+    private Queue<GameObject> solutionText = new Queue<GameObject>();
     private string error = null;
 
     private void Start()
     {
-        SearchTables st = new SearchTables(CubieCube.SolvedCube(), "Assets/Resources/", s => cb.Enqueue(s));
-        search = new Search(st);
+        st = new SearchTables("Assets/Resources/", s => cb.Enqueue(s));
     }
 
     private void Update()
@@ -39,6 +43,7 @@ public class Menu : MonoBehaviour
                 PlayerPrefs.SetString("alg", text.Substring(0, text.IndexOf('(') - 1));
                 SceneManager.LoadScene("Visualiser");
             });
+            solutionText.Enqueue(alg);
         }
         if(error != null)
         {
@@ -80,17 +85,16 @@ public class Menu : MonoBehaviour
         string state = new string(colours.Select(c => colour2char[c]).ToArray());
 
         // Start solver
-        new Thread(() =>
-        {
-            try
+        tasks = new List<Task>();
+        tokenSource = new CancellationTokenSource();
+        Search.solutions = new ConcurrentDictionary<string, byte>();
+
+        for (int i = 0; i < 1; i++)
+            tasks.Add(Task.Run(() =>
             {
+                Search search = new Search(st, tokenSource.Token);
                 search.Solve(state);
-            }
-            catch (Exception e)
-            {
-                error = e.Message;
-            }
-        }).Start();
+            }, tokenSource.Token));
     }
 
     public void Exit()
@@ -101,9 +105,10 @@ public class Menu : MonoBehaviour
 
     private void EndSolver()
     {
-        search.exit = true;
-        while (solutionDisplay.childCount > 0)
-            Destroy(solutionDisplay.GetChild(0).gameObject);
+        if(tokenSource != null)
+            tokenSource.Cancel();
+        while (solutionText.Count > 0)
+            Destroy(solutionText.Dequeue());
     }
 
     public void LoadWebcam()

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Threading;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using Cube_Solver.Cubes;
 
 namespace Cube_Solver.Solver
@@ -11,20 +13,22 @@ namespace Cube_Solver.Solver
     {
         private SearchTables st;
 
-        public Search(SearchTables st)
+        private CancellationToken ct;
+        public static ConcurrentDictionary<string, byte> solutions;
+
+        public Search(SearchTables st, CancellationToken ct)
         {
             this.st = st;
+            this.ct = ct;
         }
 
         private int maxDepth;
         private Stack<(CubieCube, int)> path1;
         private Stack<(int cp, int ep, int)> path2;
-        public bool exit;
 
         public void Solve(string state)
         {
             CubieCube cube = new CubieCube(new FaceletCube(state));
-            exit = false;
             path1 = new Stack<(CubieCube, int)>();
             path1.Push((cube, -1));
             maxDepth = int.MaxValue;
@@ -34,7 +38,7 @@ namespace Cube_Solver.Solver
 
         private void Phase1(int depth)
         {
-            if (exit) return;
+            if (ct.IsCancellationRequested && solutions.Keys.Count > 0) return;
 
             CubieCube curr = path1.Peek().Item1;
             int heur = Math.Max(st.coTable[st.idCalc.GetCO(curr)], st.eoTable[st.idCalc.GetEO(curr) * SearchTables.NUM_ESLICE + st.idCalc.GetEslice(curr)]);
@@ -73,7 +77,7 @@ namespace Cube_Solver.Solver
 
         private void Phase2(int depth)
         {
-            if (exit) return;
+            if (ct.IsCancellationRequested && solutions.Keys.Count > 0) return;
 
             var curr = path2.Peek();
             int heur = Math.Max(st.cpTable[curr.cp], st.epTable[curr.ep]);
