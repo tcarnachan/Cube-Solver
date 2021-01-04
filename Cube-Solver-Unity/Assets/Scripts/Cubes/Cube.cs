@@ -12,8 +12,8 @@ namespace Cube_Solver.Cubes
         public const int DIM_SQR = DIM * DIM;
         public const string FACE_CHARS = "ULFRBD";
 
-        protected const int NUM_EDGES = 12;
-        protected const int NUM_CORNERS = 8;
+        public const int NUM_EDGES = 12;
+        public const int NUM_CORNERS = 8;
 
         protected static Random random = new Random(0);
 
@@ -23,6 +23,9 @@ namespace Cube_Solver.Cubes
         /// Direction for applying moves (clockwise, half-turn, counter-clockwise)
         /// </summary>
         public enum Dir {  CW, HALF, CCW }
+
+        public enum Edge { UB, UR, UF, UL, DB, DR, DF, DL, BL, BR, FR, FL };
+        public enum Corner { ULB, UBR, URF, UFL, DBL, DRB, DFR, DLF };
 
         /// <summary>
         /// Returns this cube with the move applied to it without modifying this object.
