@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
@@ -12,23 +13,34 @@ namespace Cube_Solver.Solver
     public class Search
     {
         private SearchTables st;
+        private Symmetries sym;
 
         private CancellationToken ct;
         public static ConcurrentDictionary<string, byte> solutions;
 
-        public Search(SearchTables st, CancellationToken ct)
+        private int rot;
+        private bool inverse;
+
+        public Search(SearchTables st, CancellationToken ct, Symmetries sym, int rot, bool inverse)
         {
             this.st = st;
             this.ct = ct;
+            this.sym = sym;
+            this.rot = rot;
+            this.inverse = inverse;
         }
 
-        private int maxDepth;
+        private static int maxDepth;
         private Stack<(CubieCube, int)> path1;
         private Stack<(int cp, int ep, int)> path2;
 
         public void Solve(string state)
         {
             CubieCube cube = new CubieCube(new FaceletCube(state));
+            if (inverse)
+                cube = cube.InverseCube();
+            for (int i = 0; i < rot; i++)
+                cube = sym.RotURF(cube);
             path1 = new Stack<(CubieCube, int)>();
             path1.Push((cube, -1));
             maxDepth = int.MaxValue;
@@ -114,33 +126,71 @@ namespace Cube_Solver.Solver
             // Print phase 1
             var temp1 = new Stack<(CubieCube, int)>(path1);
             temp1.Pop();
-            int len = temp1.Count;
-            string s = "";
+            List<(int face, int dir)> moves = new List<(int face, int dir)>();
             while (temp1.Count > 0)
             {
                 int m = temp1.Pop().Item2;
-                s += Cube.FACE_CHARS[m / 3] + new string[] { " ", "2 ", "' " }[m % 3];
+                moves.Add((m / 3, m % 3));
             }
 
             // Print phase 2
             var temp2 = new Stack<(int, int, int)>(path2);
             temp2.Pop();
-            len += temp2.Count;
             while (temp2.Count > 0)
             {
                 int m = temp2.Pop().Item3;
-                s += Cube.FACE_CHARS[m / 3] + new string[] { " ", "2 ", "' " }[m % 3];
+                moves.Add((m / 3, m % 3));
             }
-            st.Output($"{s}({len})");
-            // Update maxDepth
-            maxDepth = len - 1;
+
+            // Handle inverse
+            if (inverse)
+            {
+                moves.Reverse();
+                for (int i = 0; i < moves.Count; i++)
+                    moves[i] = (moves[i].face, 2 - moves[i].dir);
+            }
+
+            // Handle rotations
+            for (int i = 0; i < rot; i++)
+                moves = MakeTrans(moves);
+
+            // Get string
+            string s = "";
+            foreach (var mov in moves)
+                s += Cube.FACE_CHARS[mov.face] + new string[] { " ", "2 ", "' " }[mov.dir];
+
+            if (!solutions.ContainsKey(s))
+            {
+                solutions[s] = 0;
+                st.Output($"{s}({moves.Count})");
+                // Update maxDepth
+                maxDepth = moves.Count;
+            }
+        }
+
+        private Face[] transArr = new Face[] { Face.F, Face.U, Face.R };
+        private static Dictionary<Face, Face> rotTrans;
+
+        private List<(int, int)> MakeTrans(List<(int f, int d)> moves)
+        {
+            if (rotTrans == null)
+            {
+                rotTrans = new Dictionary<Face, Face>();
+                for (int i = 0; i < transArr.Length; i++)
+                {
+                    rotTrans[transArr[i]] = transArr[(i + 1) % transArr.Length];
+                    rotTrans[movePairs[transArr[i]]] = movePairs[rotTrans[transArr[i]]];
+                }
+            }
+
+            return moves.Select(m => ((int)rotTrans[(Face)m.f], m.d)).ToList();
         }
 
         private Dictionary<Face, Face> movePairs = new Dictionary<Face, Face>
         {
-            { Face.B, Face.F },
-            { Face.R, Face.L },
-            { Face.U, Face.D }
+            { Face.F, Face.B },
+            { Face.U, Face.D },
+            { Face.R, Face.L }
         };
 
         private bool ValidMove(Face prev, Face curr)

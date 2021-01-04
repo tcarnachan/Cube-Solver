@@ -18,6 +18,7 @@ public class Menu : MonoBehaviour
     private List<Task> tasks;
     private CancellationTokenSource tokenSource;
     private SearchTables st;
+    private Symmetries sym;
 
     public GameObject errorDisplay;
     public Text errorText;
@@ -29,6 +30,7 @@ public class Menu : MonoBehaviour
     private void Start()
     {
         st = new SearchTables("Assets/Resources/", s => cb.Enqueue(s));
+        sym = new Symmetries();
     }
 
     private void Update()
@@ -89,12 +91,16 @@ public class Menu : MonoBehaviour
         tokenSource = new CancellationTokenSource();
         Search.solutions = new ConcurrentDictionary<string, byte>();
 
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 6; i++)
+        {
+            bool inverse = i / 3 == 0;
+            int rot = i % 3;
             tasks.Add(Task.Run(() =>
             {
-                Search search = new Search(st, tokenSource.Token);
+                Search search = new Search(st, tokenSource.Token, sym, rot, inverse);
                 search.Solve(state);
             }, tokenSource.Token));
+        }
     }
 
     public void Exit()
@@ -105,7 +111,7 @@ public class Menu : MonoBehaviour
 
     private void EndSolver()
     {
-        if(tokenSource != null)
+        if (tokenSource != null)
             tokenSource.Cancel();
         while (solutionText.Count > 0)
             Destroy(solutionText.Dequeue());
