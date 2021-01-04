@@ -34,9 +34,8 @@ namespace Cube_Solver.Solver
         private Stack<(CubieCube, int)> path1;
         private Stack<(int cp, int ep, int)> path2;
 
-        public void Solve(string state)
+        public void Solve(CubieCube cube)
         {
-            CubieCube cube = new CubieCube(new FaceletCube(state));
             if (inverse)
                 cube = cube.InverseCube();
             for (int i = 0; i < rot; i++)

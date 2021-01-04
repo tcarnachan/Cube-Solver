@@ -91,14 +91,24 @@ public class Menu : MonoBehaviour
         tokenSource = new CancellationTokenSource();
         Search.solutions = new ConcurrentDictionary<string, byte>();
 
-        for (int i = 0; i < 6; i++)
+        // Chose what to run in parallel
+        CubieCube cc = new CubieCube(new FaceletCube(state));
+        List<int> nums = Enumerable.Range(0, 6).ToList();
+        HashSet<int> syms = sym.GetSymmetries(cc);
+        if (syms.Union(new int[] { 16, 20, 24, 28 }).Count() > 0) // The cube has rotational symmetry about the long diagonal
+            nums = new List<int> { 0, 3 }; // Only search one rotation and its inverse
+        if (syms.Union(Enumerable.Range(Symmetries.N_SYMS, Symmetries.N_SYMS)).Count() > 0) // The cube has anti-symmetry
+            nums = nums.GetRange(0, 3).ToList(); // Don't search the inverses
+
+        // Start searching
+        foreach(int i in nums)
         {
             bool inverse = i / 3 == 0;
             int rot = i % 3;
             tasks.Add(Task.Run(() =>
             {
                 Search search = new Search(st, tokenSource.Token, sym, rot, inverse);
-                search.Solve(state);
+                search.Solve(cc);
             }, tokenSource.Token));
         }
     }
