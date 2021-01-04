@@ -15,6 +15,7 @@ public class LoginSystem : MonoBehaviour
 
     private InputField nameField, passwordField;
     private Button loginButton, registerButton;
+    public Text errorText;
 
     private const int saltSize = 16, hashSize = 20;
     private const int iterations = 10000;
@@ -88,7 +89,7 @@ public class LoginSystem : MonoBehaviour
         if (www.text == "0")
             SceneManager.LoadScene("Main");
         else
-            Debug.LogError($"Error in creating account: {www.text}");
+            errorText.text = $"Error in creating account: {www.text}";
     }
 
     private IEnumerator Login()
@@ -104,10 +105,10 @@ public class LoginSystem : MonoBehaviour
             if (VerifyPassword(passwordField.text, password))
                 SceneManager.LoadScene("Main");
             else
-                Debug.LogError("Invalid password");
+                errorText.text = "Invalid password";
         }
         else
-            Debug.LogError($"Error in loging in: {www.text}");
+            errorText.text = $"Error in loging in: {www.text}";
     }
 
     private string HashPassword(string password)
