@@ -73,10 +73,17 @@ namespace Cube_Solver.Cubes
         #region Basic Symmetries
         /*
          * The list of 'basic symmetries' which are used here:
-             * URF cube - 120 degree rotation about the axis through the URF and DBL corners
-             * ReflectRL - Reflection about the RL-slice plane
-             * UD cube - 90 degree rotation about the axis going through the U and D centres
-             * FB cube - 180 degree rotation about the axis going through the F and B centres
+             * URF cube - 120 degree rotation about the axis through the URF and DBL corners (b and g corners in the diagram below)
+             * ReflectRL - Reflection about the RL-slice plane (parallel to the bdfh and aceg faces, perpendicular to the abef-face)
+             * UD cube - 90 degree rotation about the axis going through the U and D centres (U-face is abef-face, D-face is cdgh-face)
+             * FB cube - 180 degree rotation about the axis going through the F and B centres (F-face is abcd-face, B-face is efgh-face)
+         *    e-------f
+         *   /|      /|
+         *  / |     / |
+         * a--+----b  |
+         * |  g----|--h
+         * | /     | /
+         * c-------d
          */
 
         // 120 degree rotation about the axis through the URF and DBL corners

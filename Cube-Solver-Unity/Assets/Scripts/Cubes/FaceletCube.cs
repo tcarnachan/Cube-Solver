@@ -161,92 +161,121 @@ namespace Cube_Solver.Cubes
             return s;
         }
 
+        #region Turning the cube
+        /*
+         * A move is rotating one face of the cube in a specific direction (90 degrees clockwise, 180 degrees, 90 degrees counterclockwise)
+         * All these moves can be generated from three moves (x rotation, y rotation, U turn) defined below
+         * 180 degree and 90 degree counterclockwise moves are done by applying the clockwise move 2 or 3 times respectively
+         */
         public override Cube ApplyMove(Face f, Dir dir)
         {
             FaceletCube res = new FaceletCube(this);
-
-            for (int _ = 0; _ <= (int)dir; _++)
+            for (int i = 0; i <= (int)dir; i++)
                 res = res.ApplyMove(f);
-
             return res;
         }
 
-        /// <summary>
-        /// Applies a clockwise rotation to one face of the cube.
-        /// </summary>
-        /// <param name="f">The face to rotate.</param>
-        /// <returns>The result of rotating that face on this cube.</returns>
-        private FaceletCube ApplyMove(Face face)
+        // Cycles for the faces which are moved by these rotations
+        Face[] yCycle = new Face[] { Face.F, Face.L, Face.B, Face.R }; // The F face goes to the L face which -> B -> R -> F
+        Face[] xCycle = new Face[] { Face.F, Face.U, Face.B, Face.D }; // F -> U -> B -> D -> F
+
+        /*
+         * Performs a y rotation (the effect here is shown by labelling the corners)
+         *    e-------f                 a-------e
+         *   /|      /|                /|      /|
+         *  / |     / |               / |     / |
+         * a--+----b  |   goes to    b--+----f  |
+         * |  g----|--h              |  c----|--g
+         * | /     | /               | /     | /
+         * c-------d                 d-------h
+         *
+         *      |
+         *    e-|-----f
+         *   /| |    /|
+         *  / | |   / |
+         * a--+-|--b  |  Rotating about this axis going through the U and D centres
+         * |  g-|--|--h  (U is the abef-face, and D is the cdgh-face)
+         * | /  |  | / 
+         * c-------d   
+         *      |
+         */
+        private FaceletCube RotY()
         {
             FaceletCube res = new FaceletCube(this);
 
-            // Update this face
-            int neg = DIM - 1;
-            Face[,] oldFace = faces[(int)face];
-            Face[,] newFace = res.faces[(int)face];
-            for (int i = 0; i < DIM; i++)
-            {
-                for (int j = 0; j < DIM; j++)
-                    newFace[i, j] = oldFace[neg - j, i];
-            }
-
-            // Update adjacent faces
-            switch (face)
-            {
-                case Face.U:
-                    for (int i = 0; i < DIM; i++)
-                    {
-                        for (int f = 1; f < 5; f++)
-                            res.faces[f][0, i] = faces[f % 4 + 1][0, i];
-                    }
-                    break;
-                case Face.D:
-                    for (int i = 0; i < DIM; i++)
-                    {
-                        for (int f = 1; f < 5; f++)
-                            res.faces[f % 4 + 1][neg, i] = faces[f][neg, i];
-                    }
-                    break;
-                case Face.F:
-                    for (int i = 0; i < DIM; i++)
-                    {
-                        res.faces[(int)Face.U][neg, i] = faces[(int)Face.L][neg - i, neg];
-                        res.faces[(int)Face.L][i, neg] = faces[(int)Face.D][0, i];
-                        res.faces[(int)Face.D][0, i] = faces[(int)Face.R][neg - i, 0];
-                        res.faces[(int)Face.R][i, 0] = faces[(int)Face.U][neg, i];
-                    }
-                    break;
-                case Face.B:
-                    for (int i = 0; i < DIM; i++)
-                    {
-                        res.faces[(int)Face.U][0, i] = faces[(int)Face.R][i, neg];
-                        res.faces[(int)Face.L][i, 0] = faces[(int)Face.U][0, neg - i];
-                        res.faces[(int)Face.D][neg, i] = faces[(int)Face.L][i, 0];
-                        res.faces[(int)Face.R][i, neg] = faces[(int)Face.D][neg, neg - i];
-                    }
-                    break;
-                case Face.R:
-                    for (int i = 0; i < DIM; i++)
-                    {
-                        res.faces[(int)Face.U][i, neg] = faces[(int)Face.F][i, neg];
-                        res.faces[(int)Face.F][i, neg] = faces[(int)Face.D][i, neg];
-                        res.faces[(int)Face.D][i, neg] = faces[(int)Face.B][neg - i, 0];
-                        res.faces[(int)Face.B][i, 0] = faces[(int)Face.U][neg - i, neg];
-                    }
-                    break;
-                case Face.L:
-                    for (int i = 0; i < DIM; i++)
-                    {
-                        res.faces[(int)Face.U][i, 0] = faces[(int)Face.B][neg - i, neg];
-                        res.faces[(int)Face.F][i, 0] = faces[(int)Face.U][i, 0];
-                        res.faces[(int)Face.D][i, 0] = faces[(int)Face.F][i, 0];
-                        res.faces[(int)Face.B][i, neg] = faces[(int)Face.D][neg - i, 0];
-                    }
-                    break;
-            }
+            for (int i = 0; i < yCycle.Length; i++)
+                res.faces[(int)yCycle[(i + 1) % yCycle.Length]] = faces[(int)yCycle[i]];
+            res = res.RotFace((int)Face.U); // After moving the adjacent faces, rotate the U and D faces
+            for (int i = 0; i < 3; i++) res = res.RotFace((int)Face.D); // D face is rotated counterclockwise
 
             return res;
         }
+
+        /*
+         * Performs an x rotation (the effect here is shown by labelling the corners)
+         *    e-------f                 g-------h
+         *   /|      /|                /|      /|
+         *  / |     / |               / |     / |   Rotating about the axis going through the R and L centres
+         * a--+----b  |   goes to    e--+----f  |   (L is the aceg-face and R is the bdfh-face in the diagram)
+         * |  g----|--h              |  c----|--d
+         * | /     | /               | /     | /
+         * c-------d                 a-------b
+         */
+        private FaceletCube RotX()
+        {
+            FaceletCube res = new FaceletCube(this);
+
+            for (int i = 0; i < xCycle.Length; i++)
+                res.faces[(int)xCycle[(i + 1) % xCycle.Length]] = faces[(int)xCycle[i]];
+            res = res.RotFace((int)Face.R); // After moving the adjacent faces, rotate the R and L faces
+            for (int i = 0; i < 3; i++) res = res.RotFace((int)Face.L); // L face is rotated counterclockwise
+            for (int i = 0; i < 2; i++) res = res.RotFace((int)Face.B).RotFace((int)Face.D); // B and D faces are flipped upside down
+
+            return res;
+        }
+
+        private FaceletCube ApplyUMove()
+        {
+            FaceletCube res = new FaceletCube(this);
+            // Update U face
+            RotFace((int)Face.U);
+            // Update adjacent faces
+            for (int i = 0; i < DIM; i++)
+            {
+                for (int f = 1; f < 5; f++)
+                    res.faces[f][0, i] = faces[f % 4 + 1][0, i];
+            }
+            return res;
+        }
+
+        // Rotates one face of the cube 90 degrees
+        private FaceletCube RotFace(int f)
+        {
+            FaceletCube res = new FaceletCube(this);
+            for (int i = 0; i < DIM; i++)
+            {
+                for (int j = 0; j < DIM; j++)
+                    res.faces[f][i, j] = faces[f][DIM - j - 1, i];
+            }
+            return res;
+        }
+
+        // Applies a clockwise move to one face of the cube by rotating the cube then applying a move
+        // which is already defined. Counterclockwise rotations are done as 3 clockwise rotations.
+        private FaceletCube ApplyMove(Face face)
+        {
+            switch (face)
+            {
+                case Face.U: return ApplyUMove();
+                case Face.D: return RotX().RotX().ApplyUMove().RotX().RotX();      // x2 U x2
+                case Face.F: return RotX().ApplyUMove().RotX().RotX().RotX();      // x U x'
+                case Face.B: return RotX().RotX().RotX().ApplyUMove().RotX();      // x' U x
+                case Face.R: return RotY().ApplyMove(Face.F).RotY().RotY().RotY(); // y F y'
+                case Face.L: return RotY().ApplyMove(Face.B).RotY().RotY().RotY();  // y B y'
+            }
+            return null;
+        }
+        #endregion
     }
 }
 
