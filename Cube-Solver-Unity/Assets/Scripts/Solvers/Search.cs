@@ -122,6 +122,8 @@ namespace Cube_Solver.Solver
 
         private void EndPhase2()
         {
+            if (path1.Count + path2.Count - 2 >= maxDepth) return;
+
             // Print phase 1
             var temp1 = new Stack<(CubieCube, int)>(path1);
             temp1.Pop();

@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 
 using System;
 using System.Linq;
@@ -31,6 +30,13 @@ public class LoginSystem : MonoBehaviour
         passwordField = (InputField)uiElems[(int)UIField.PasswordField];
         loginButton = (Button)uiElems[(int)UIField.LoginButton];
         registerButton = (Button)uiElems[(int)UIField.RegisterButton];
+
+        DBManager.StartServer();
+    }
+
+    private void OnDestroy()
+    {
+        DBManager.StopServer();
     }
 
     void Update()
@@ -87,7 +93,7 @@ public class LoginSystem : MonoBehaviour
         WWW www = new WWW("http://localhost:8888/sqlconnect/register.php", form);
         yield return www;
         if (www.text == "0")
-            SceneManager.LoadScene("Main");
+            DBManager.LogIn(nameField.text);
         else
             errorText.text = $"Error in creating account: {www.text}";
     }
@@ -103,7 +109,7 @@ public class LoginSystem : MonoBehaviour
         {
             string password = www.text.Substring(1);
             if (VerifyPassword(passwordField.text, password))
-                SceneManager.LoadScene("Main");
+                DBManager.LogIn(nameField.text);
             else
                 errorText.text = "Invalid password";
         }
