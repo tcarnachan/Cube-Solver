@@ -4,9 +4,9 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
-public static class ColourManager
+class ColourManager : MonoBehaviour
 {
-    public static Color[] colours = new Color[]
+    public Color[] colours = new Color[]
     {
         new Color(1, 1, 0),  // Yellow
         new Color(0, 1, 0),  // Green
@@ -16,20 +16,22 @@ public static class ColourManager
         new Color(1, .5f, 0) // Orange
     };
 
-    public static IEnumerator SaveColours()
-    {
-        if (!DBManager.serverStarted)
-            DBManager.StartServer();
+    private ServerManager serverManager;
 
+    private void Start()
+    {
+        serverManager = FindObjectOfType<ServerManager>();
+    }
+
+    public IEnumerator SaveColours()
+    {
         WWWForm form = new WWWForm();
         for (int i = 0; i < colours.Length; i++)
             form.AddField($"colour{i + 1}", Col2Str(colours[i]));
-        form.AddField("name", DBManager.username);
+        form.AddField("name", serverManager.username);
 
         WWW www = new WWW("http://localhost:8888/sqlconnect/savecolour.php", form);
         yield return www;
-
-        DBManager.StopServer();
 
         if (www.text != "0")
             Debug.LogError($"Error in updating colours: {www.text}");
@@ -37,13 +39,10 @@ public static class ColourManager
             Debug.Log("Success!");
     }
 
-    public static IEnumerator LoadColours(Action<List<Color[]>> DisplayColours)
+    public IEnumerator LoadColours(Action<List<Color[]>> DisplayColours)
     {
-        if (!DBManager.serverStarted)
-            DBManager.StartServer();
-
         WWWForm form = new WWWForm();
-        form.AddField("name", DBManager.username);
+        form.AddField("name", serverManager.username);
 
         WWW www = new WWW("http://localhost:8888/sqlconnect/loadcolour.php", form);
         yield return www;
@@ -53,8 +52,6 @@ public static class ColourManager
         foreach (string s in results)
             colourSchemes.Add(s.TrimEnd('\t').Split('\t').Select(Str2Col).ToArray());
         DisplayColours(colourSchemes);
-
-        DBManager.StopServer();
     }
 
     private static string Col2Str(Color colour)

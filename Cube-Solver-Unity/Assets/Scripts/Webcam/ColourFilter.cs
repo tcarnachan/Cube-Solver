@@ -21,12 +21,16 @@ public class ColourFilter : MonoBehaviour
     public Transform map;
     private int currFace = 0;
 
+    private ColourManager colourManager;
+
     private void Awake()
     {
         webCam = new WebCamTexture();
         webCam.requestedFPS = 120;
         ri.texture = webCam;
         webCam.Play();
+
+        colourManager = FindObjectOfType<ColourManager>();
     }
 
     private void Update()
@@ -50,7 +54,7 @@ public class ColourFilter : MonoBehaviour
                     foreach (Transform facelet in f)
                     {
                         Color colour = facelet.GetComponent<Image>().color;
-                        cube += $"{Array.IndexOf(ColourManager.colours, colour)} ";
+                        cube += $"{Array.IndexOf(colourManager.colours, colour)} ";
                     }
                 }
                 // Remove extra space
@@ -140,24 +144,24 @@ public class ColourFilter : MonoBehaviour
 
         // White
         if (s <= .2f && v >= .3f)
-            return ColourManager.colours[3];
+            return colourManager.colours[3];
         // Yellow
         else if (.15f <= h && h <= .22f)
-            return ColourManager.colours[0];
+            return colourManager.colours[0];
         // Blue
         else if (.55f <= h && h <= .7f)
-            return ColourManager.colours[4];
+            return colourManager.colours[4];
         // Green
         else if (.33f <= h && h <= .42f)
-            return ColourManager.colours[1];
+            return colourManager.colours[1];
         // Red and orange are fun
         else if (h <= .03f || h >= .97f)
         {
             // Red
             if (s < .55f || v < .55f)
-                return ColourManager.colours[2];
+                return colourManager.colours[2];
             // Orange
-            return ColourManager.colours[5];
+            return colourManager.colours[5];
         }
 
         return Color.black;

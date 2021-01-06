@@ -19,6 +19,8 @@ public class LoginSystem : MonoBehaviour
     private const int saltSize = 16, hashSize = 20;
     private const int iterations = 10000;
 
+    private ServerManager serverManager;
+
     enum UIField { NameField, PasswordField, LoginButton, RegisterButton };
 
     private void Start()
@@ -31,7 +33,7 @@ public class LoginSystem : MonoBehaviour
         loginButton = (Button)uiElems[(int)UIField.LoginButton];
         registerButton = (Button)uiElems[(int)UIField.RegisterButton];
 
-        DBManager.StartServer();
+        serverManager = FindObjectOfType<ServerManager>();
     }
 
     void Update()
@@ -88,7 +90,7 @@ public class LoginSystem : MonoBehaviour
         WWW www = new WWW("http://localhost:8888/sqlconnect/register.php", form);
         yield return www;
         if (www.text == "0")
-            DBManager.LogIn(nameField.text);
+            serverManager.LogIn(nameField.text);
         else
             errorText.text = $"Error in creating account: {www.text}";
     }
@@ -104,7 +106,7 @@ public class LoginSystem : MonoBehaviour
         {
             string password = www.text.Substring(1);
             if (VerifyPassword(passwordField.text, password))
-                DBManager.LogIn(nameField.text);
+                serverManager.LogIn(nameField.text);
             else
                 errorText.text = "Invalid password";
         }

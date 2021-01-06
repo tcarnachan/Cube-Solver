@@ -40,12 +40,15 @@ public class CubeController : MonoBehaviour
 
     // Materials for the cube colours
     public Material[] cubeMaterials;
+    private ColourManager colourManager;
 
     private void Start()
     {
+        colourManager = FindObjectOfType<ColourManager>();
+
         // Update material colours
         for (int i = 0; i < cubeMaterials.Length; i++)
-            cubeMaterials[i].color = ColourManager.colours[i];
+            cubeMaterials[i].color = colourManager.colours[i];
 
         // Initialise cubies
         cubies = new Transform[DIM * DIM * DIM];

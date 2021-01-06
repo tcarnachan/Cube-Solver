@@ -18,10 +18,15 @@ public class ColourPicker : MonoBehaviour
     public GameObject colourDisplay, colourDisplayObj;
     public Transform colourDisplayContent;
 
+    private ServerManager serverManager;
+    private ColourManager colourManager;
+
     private void Awake()
     {
+        serverManager = FindObjectOfType<ServerManager>();
+        colourManager = FindObjectOfType<ColourManager>();
         for (int i = 0; i < colours.Length; i++)
-            UpdateColour(colours[i], ColourManager.colours[i]);
+            UpdateColour(colours[i], colourManager.colours[i]);
     }
 
     private void Start()
@@ -51,7 +56,7 @@ public class ColourPicker : MonoBehaviour
             Color[] colours = webcam.Split().Select(i =>
             {
                 if(int.Parse(i) >= 0)
-                    return ColourManager.colours[int.Parse(i)];
+                    return colourManager.colours[int.Parse(i)];
                 return defaultColour;
             }).ToArray();
             // Update colours on map
@@ -72,7 +77,7 @@ public class ColourPicker : MonoBehaviour
         else
         {
             // Load previously saved cubestate
-            string state = PlayerPrefs.GetString(DBManager.username, null);
+            string state = PlayerPrefs.GetString(serverManager.username, null);
             if(state != null)
             {
                 int ix = 0;
@@ -81,8 +86,8 @@ public class ColourPicker : MonoBehaviour
                     foreach(Transform facelet in face)
                     {
                         int t = state[ix++] - '0';
-                        if (t < ColourManager.colours.Length)
-                            facelet.GetComponent<Image>().color = ColourManager.colours[t];
+                        if (t < colourManager.colours.Length)
+                            facelet.GetComponent<Image>().color = colourManager.colours[t];
                     }
                 }
             }
@@ -96,11 +101,11 @@ public class ColourPicker : MonoBehaviour
         string s = "";
         foreach(Color colour in colours)
         {
-            int ix = System.Array.IndexOf(ColourManager.colours, colour);
+            int ix = System.Array.IndexOf(colourManager.colours, colour);
             if (ix == -1) ix = 6;
             s += ix;
         }
-        PlayerPrefs.SetString(DBManager.username, s);
+        PlayerPrefs.SetString(serverManager.username, s);
     }
 
     public void SelectColour(Image img)
@@ -148,21 +153,21 @@ public class ColourPicker : MonoBehaviour
             }
         }
         // Update ColourManager
-        int ix = System.Array.IndexOf(ColourManager.colours, targetImage.color);
+        int ix = System.Array.IndexOf(colourManager.colours, targetImage.color);
         if (ix != -1)
-            ColourManager.colours[ix] = newColour;
+            colourManager.colours[ix] = newColour;
         // Update target image
         targetImage.color = newColour;
     }
 
     public void SaveColours()
     {
-        StartCoroutine(ColourManager.SaveColours());
+        StartCoroutine(colourManager.SaveColours());
     }
 
     public void LoadColours()
     {
-        StartCoroutine(ColourManager.LoadColours(x =>
+        StartCoroutine(colourManager.LoadColours(x =>
         {
             // Initialise colour display
             colourDisplay.SetActive(true);
