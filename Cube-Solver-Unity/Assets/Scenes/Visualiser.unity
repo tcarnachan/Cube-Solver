@@ -3719,6 +3719,13 @@ MonoBehaviour:
   buttonImg: {fileID: 444061780}
   step: {fileID: 320616626}
   undo: {fileID: 1367165382}
+  cubeMaterials:
+  - {fileID: 2100000, guid: e2d07fa795e09e84794959bbf464430a, type: 2}
+  - {fileID: 2100000, guid: 5b365269a55b4fc4a920848e27300e66, type: 2}
+  - {fileID: 2100000, guid: cf55f2590a1015e49a35c341893f312b, type: 2}
+  - {fileID: 2100000, guid: dac71038b77d56b429578769e28fa0c5, type: 2}
+  - {fileID: 2100000, guid: 51cf03ffd29bf3847965811205be557c, type: 2}
+  - {fileID: 2100000, guid: 22791190e8846fb4cb640366ad22f048, type: 2}
 --- !u!1 &1781985286
 GameObject:
   m_ObjectHideFlags: 0

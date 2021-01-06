@@ -1,17 +1,14 @@
 ﻿using UnityEngine;
 
-public class ColourManager : MonoBehaviour
+public static class ColourManager
 {
-    public static ColourManager instance;
-
-    public Color[] colours;
-
-    private void Awake()
+    public static Color[] colours = new Color[]
     {
-        if (instance)
-            Destroy(gameObject);
-        instance = this;
-
-        DontDestroyOnLoad(gameObject);
-    }
+        new Color(1, 1, 0),  // Yellow
+        new Color(0, 1, 0),  // Green
+        new Color(1, 0, 0),  // Red
+        new Color(1, 1, 1),  // White
+        new Color(0, 0, 1),  // Blue
+        new Color(1, .5f, 0) // Orange
+    };
 }

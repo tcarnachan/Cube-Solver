@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
+using System;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -16,6 +18,9 @@ public class ColourFilter : MonoBehaviour
 
     private List<Color> captureColours = new List<Color>();
 
+    public Transform map;
+    private int currFace = 0;
+
     private void Awake()
     {
         webCam = new WebCamTexture();
@@ -25,6 +30,39 @@ public class ColourFilter : MonoBehaviour
     }
 
     private void Update()
+    {
+        GetCaptureRegions();
+
+        // Update cube state when space bar is pressed
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Color[] colours = captureColours.ToArray();
+            Transform face = map.GetChild(currFace++);
+            for (int i = 0; i < colours.Length; i++)
+                face.GetChild(i).GetComponent<Image>().color = colours[i];
+
+            if (currFace == map.childCount)
+            {
+                // Convert colours to string
+                string cube = "";
+                foreach (Transform f in map)
+                {
+                    foreach (Transform facelet in f)
+                    {
+                        Color colour = facelet.GetComponent<Image>().color;
+                        cube += $"{Array.IndexOf(ColourManager.colours, colour)} ";
+                    }
+                }
+                // Remove extra space
+                cube = cube.Substring(0, cube.Length - 1);
+
+                PlayerPrefs.SetString("webcam", cube);
+                SceneManager.LoadScene("Main");
+            }
+        }
+    }
+
+    private void GetCaptureRegions()
     {
         WebCamTexture tex = (WebCamTexture)ri.texture;
 
@@ -41,7 +79,7 @@ public class ColourFilter : MonoBehaviour
         // Get capture regions
         List<(int r, int c)> captureRegions = new List<(int r, int c)>();
         int regionWidth = captureWidth * dim + padding * (dim - 1);
-        
+
         int top = (tex.height + regionWidth / 2) / 2;
         for (int i = 0; i < dim; i++)
         {
@@ -56,14 +94,14 @@ public class ColourFilter : MonoBehaviour
         }
 
         captureColours.Clear();
-        foreach(var tl in captureRegions)
+        foreach (var tl in captureRegions)
         {
             Color[] regionColours = newTex.GetPixels(tl.r, tl.c, captureWidth, captureWidth);
             Color[] nColours = regionColours.Select(c => GetColour(c)).ToArray();
 
             Dictionary<Color, int> counter = new Dictionary<Color, int>();
 
-            foreach(Color c in nColours)
+            foreach (Color c in nColours)
             {
                 if (counter.ContainsKey(c))
                     counter[c]++;
@@ -73,9 +111,9 @@ public class ColourFilter : MonoBehaviour
 
             int max = 0;
             Color col = Color.black;
-            foreach(var kvp in counter)
+            foreach (var kvp in counter)
             {
-                if(kvp.Value > max && kvp.Key != Color.black)
+                if (kvp.Value > max && kvp.Key != Color.black)
                 {
                     max = kvp.Value;
                     col = kvp.Key;
@@ -102,31 +140,26 @@ public class ColourFilter : MonoBehaviour
 
         // White
         if (s <= .2f && v >= .3f)
-            return ColourManager.instance.colours[3];
+            return ColourManager.colours[3];
         // Yellow
         else if (.15f <= h && h <= .22f)
-            return ColourManager.instance.colours[0];
+            return ColourManager.colours[0];
         // Blue
         else if (.55f <= h && h <= .7f)
-            return ColourManager.instance.colours[4];
+            return ColourManager.colours[4];
         // Green
         else if (.33f <= h && h <= .42f)
-            return ColourManager.instance.colours[1];
+            return ColourManager.colours[1];
         // Red and orange are fun
         else if (h <= .03f || h >= .97f)
         {
             // Red
             if (s < .55f || v < .55f)
-                return ColourManager.instance.colours[2];
+                return ColourManager.colours[2];
             // Orange
-            return ColourManager.instance.colours[5];
+            return ColourManager.colours[5];
         }
 
         return Color.black;
-    }
-
-    public Color[] GetColours()
-    {
-        return captureColours.ToArray();
     }
 }

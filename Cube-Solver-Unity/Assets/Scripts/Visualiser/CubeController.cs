@@ -38,8 +38,16 @@ public class CubeController : MonoBehaviour
     public Image buttonImg;
     public Button step, undo;
 
+    // Materials for the cube colours
+    public Material[] cubeMaterials;
+
     private void Start()
     {
+        // Update material colours
+        for (int i = 0; i < cubeMaterials.Length; i++)
+            cubeMaterials[i].color = ColourManager.colours[i];
+
+        // Initialise cubies
         cubies = new Transform[DIM * DIM * DIM];
         for(int i = 0; i < cubies.Length; i++)
         {

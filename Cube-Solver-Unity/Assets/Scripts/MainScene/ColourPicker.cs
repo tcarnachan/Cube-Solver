@@ -18,8 +18,8 @@ public class ColourPicker : MonoBehaviour
 
     private void Awake()
     {
-        if(ColourManager.instance)
-            ColourManager.instance.colours = colours.Select(img => img.color).ToArray();
+        for (int i = 0; i < colours.Length; i++)
+            UpdateColour(colours[i], ColourManager.colours[i]);
     }
 
     private void Start()
@@ -35,10 +35,7 @@ public class ColourPicker : MonoBehaviour
         }
         // Add listeners to all colour buttons
         foreach (Image img in colours)
-        {
-            img.gameObject.AddComponent<Button>().onClick.AddListener(() => SelectColour(img));
-            img.gameObject.AddComponent<OpenColourPallette>().cp = colourPallette;
-        }
+            img.gameObject.AddComponent<ColourSelectionButton>().cp = this;
         // Initialise selected colour
         selected = colours[0].color;
         // Get default colour
@@ -51,10 +48,8 @@ public class ColourPicker : MonoBehaviour
             // Parse colours
             Color[] colours = webcam.Split().Select(i =>
             {
-                /*string[] channels = c.Split(',');
-                return new Color(float.Parse(channels[0]), float.Parse(channels[1]), float.Parse(channels[2]));*/
                 if(int.Parse(i) >= 0)
-                    return ColourManager.instance.colours[int.Parse(i)];
+                    return ColourManager.colours[int.Parse(i)];
                 return defaultColour;
             }).ToArray();
             // Update colours on map
@@ -74,7 +69,7 @@ public class ColourPicker : MonoBehaviour
         }
     }
 
-    private void SelectColour(Image img)
+    public void SelectColour(Image img)
     {
         selected = img.color;
     }
@@ -118,6 +113,11 @@ public class ColourPicker : MonoBehaviour
                     img.color = newColour;
             }
         }
+        // Update ColourManager
+        int ix = System.Array.IndexOf(ColourManager.colours, targetImage.color);
+        if (ix != -1)
+            ColourManager.colours[ix] = newColour;
+        // Update target image
         targetImage.color = newColour;
     }
 
