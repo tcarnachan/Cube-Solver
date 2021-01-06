@@ -69,6 +69,38 @@ public class ColourPicker : MonoBehaviour
             // Reset webcam
             PlayerPrefs.SetString("webcam", string.Empty);
         }
+        else
+        {
+            // Load previously saved cubestate
+            string state = PlayerPrefs.GetString(DBManager.username, null);
+            if(state != null)
+            {
+                int ix = 0;
+                foreach(Transform face in map)
+                {
+                    foreach(Transform facelet in face)
+                    {
+                        int t = state[ix++] - '0';
+                        if (t < ColourManager.colours.Length)
+                            facelet.GetComponent<Image>().color = ColourManager.colours[t];
+                    }
+                }
+            }
+        }
+    }
+
+    // Save cube state when leaving scene
+    private void OnDestroy()
+    {
+        Color[] colours = GetColours();
+        string s = "";
+        foreach(Color colour in colours)
+        {
+            int ix = System.Array.IndexOf(ColourManager.colours, colour);
+            if (ix == -1) ix = 6;
+            s += ix;
+        }
+        PlayerPrefs.SetString(DBManager.username, s);
     }
 
     public void SelectColour(Image img)
