@@ -15,6 +15,8 @@ public class ColourPicker : MonoBehaviour
     private Color defaultColour;
 
     public ColourPallette colourPallette;
+    public GameObject colourDisplay, colourDisplayObj;
+    public Transform colourDisplayContent;
 
     private void Awake()
     {
@@ -119,6 +121,37 @@ public class ColourPicker : MonoBehaviour
             ColourManager.colours[ix] = newColour;
         // Update target image
         targetImage.color = newColour;
+    }
+
+    public void SaveColours()
+    {
+        StartCoroutine(ColourManager.SaveColours());
+    }
+
+    public void LoadColours()
+    {
+        StartCoroutine(ColourManager.LoadColours(x =>
+        {
+            // Initialise colour display
+            colourDisplay.SetActive(true);
+            foreach(Color[] colours in x)
+            {
+                Transform dispTrans = Instantiate(colourDisplayObj, colourDisplayContent).transform;
+                for (int i = 0; i < colours.Length; i++)
+                    dispTrans.GetChild(i).GetComponent<Image>().color = colours[i];
+                Color[] temp = colours;
+                // When a colour scheme is selected
+                dispTrans.GetComponentInChildren<Button>().onClick.AddListener(() =>
+                {
+                    // Update colours
+                    for(int i = 0; i < temp.Length; i++)
+                        UpdateColour(this.colours[i], temp[i]);
+                    // Remove colour display
+                    for(int i = colourDisplayContent.childCount - 1; i >= 0; i--) Destroy(colourDisplayContent.GetChild(i).gameObject);
+                    colourDisplay.SetActive(false);
+                });
+            }
+        }));
     }
 
     public void SetColours(string colours)

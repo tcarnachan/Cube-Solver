@@ -3,9 +3,11 @@ using UnityEngine.SceneManagement;
 
 public static class DBManager
 {
-    private static string username;
+    public static string username { get; private set; }
 
     public static bool loggedIn { get => !string.IsNullOrEmpty(username); }
+
+    public static bool serverStarted = false;
 
     public static void LogIn(string username)
     {
@@ -21,12 +23,16 @@ public static class DBManager
 
     public static void StartServer()
     {
+        if (serverStarted) return;
         ExecuteCommand("cd /Applications/MAMP/bin;./start.sh");
+        serverStarted = true;
     }
 
     public static void StopServer()
     {
+        if (!serverStarted) return;
         ExecuteCommand("cd /Applications/MAMP/bin;./stop.sh");
+        serverStarted = false;
     }
 
     private static void ExecuteCommand(string cmd)

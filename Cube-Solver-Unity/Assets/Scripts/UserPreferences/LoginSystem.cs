@@ -34,11 +34,6 @@ public class LoginSystem : MonoBehaviour
         DBManager.StartServer();
     }
 
-    private void OnDestroy()
-    {
-        DBManager.StopServer();
-    }
-
     void Update()
     {
         int currSelected;
