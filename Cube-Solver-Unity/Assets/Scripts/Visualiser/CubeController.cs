@@ -1,5 +1,4 @@
-﻿using Cube_Solver.Cubes;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -42,9 +41,12 @@ public class CubeController : MonoBehaviour
     public Material[] cubeMaterials;
     private ColourManager colourManager;
 
+    private ServerManager serverManager;
+
     private void Start()
     {
         colourManager = FindObjectOfType<ColourManager>();
+        serverManager = FindObjectOfType<ServerManager>();
 
         // Update material colours
         for (int i = 0; i < cubeMaterials.Length; i++)
@@ -66,6 +68,27 @@ public class CubeController : MonoBehaviour
         defaultColour = moveTextPrefab.GetComponent<Text>().color;
 
         Setup(algorithm);
+    }
+
+    public void Save()
+    {
+        StartCoroutine(SaveSolution());
+    }
+
+    private IEnumerator SaveSolution()
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("name", serverManager.username);
+        form.AddField("solution", algorithmText.Replace("'", "\\'")); // Escape ' characters for sql
+        form.AddField("state", PlayerPrefs.GetString("state"));
+
+        WWW www = new WWW("http://localhost:8888/sqlconnect/savesolution.php", form);
+        yield return www;
+
+        if (www.text != "0")
+            Debug.LogError($"Error in saving solution: {www.text}");
+        else
+            Debug.Log("Success!");
     }
 
     private void InitAlgorithm()

@@ -17,11 +17,10 @@ namespace Cube_Solver.Cubes
 
         protected static Random random = new Random(0);
 
+        // The six faces of the cube (Up, Left, Front, Right, Back, Down)
         public enum Face { U, L, F, R, B, D }
 
-        /// <summary>
-        /// Direction for applying moves (clockwise, half-turn, counter-clockwise)
-        /// </summary>
+        // Direction for applying moves (clockwise, half-turn, counter-clockwise)
         public enum Dir {  CW, HALF, CCW }
 
         public enum Edge { UB, UR, UF, UL, DB, DR, DF, DL, BL, BR, FR, FL };
@@ -30,17 +29,27 @@ namespace Cube_Solver.Cubes
         /// <summary>
         /// Returns this cube with the move applied to it without modifying this object.
         /// </summary>
-        /// <param name="f">The face to apply the move to.</param>
-        /// <param name="dir">The direction of the move.</param>
+        /// <param name="f">The face to turn</param>
+        /// <param name="dir">The direction to turn the face in</param>
         public abstract Cube ApplyMove(Face f, Dir dir);
 
+        /// <summary>
+        /// Verifies that this cube is in a solvable state
+        /// </summary>
         protected abstract string Verify();
         protected const string VALID_STATE = "";
 
+        /// <summary>
+        /// Returns whether this cube is in a solved state
+        /// </summary>
         public abstract bool IsSolved();
 
+        /// <summary>
+        /// Prints a representation of this cube to the terminal
+        /// </summary>
         public abstract void Print();
 
+        // Gets the three facelets for a corner cubie
         protected static (int f, int r, int c)[] GetCorner(int cubie)
         {
             int[] faces = GetCornerFaces(cubie);
@@ -56,6 +65,7 @@ namespace Cube_Solver.Cubes
             };
         }
 
+        // Gets the adjacent faces which makes up a corner cubie
         protected static int[] GetCornerFaces(int cubie)
         {
             int t = cubie / 4;
@@ -67,6 +77,7 @@ namespace Cube_Solver.Cubes
             };
         }
 
+        // Gets the two facelets for an edge cubie
         protected static (int f, int r, int c)[] GetEdge(int cubie)
         {
             int[] faces = GetEdgeFaces(cubie);
@@ -107,6 +118,7 @@ namespace Cube_Solver.Cubes
 
         }
 
+        // Gets the adjacent faces which makes up an edge cubie
         protected static int[] GetEdgeFaces(int cubie)
         {
             // U/D faces

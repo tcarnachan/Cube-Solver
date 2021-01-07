@@ -102,7 +102,7 @@ public class LoginSystem : MonoBehaviour
 
         WWW www = new WWW("http://localhost:8888/sqlconnect/login.php", form);
         yield return www;
-        if (www.text[0] == '0')
+        if (www.text.Length > 0 && www.text[0] == '0')
         {
             string password = www.text.Substring(1);
             if (VerifyPassword(passwordField.text, password))

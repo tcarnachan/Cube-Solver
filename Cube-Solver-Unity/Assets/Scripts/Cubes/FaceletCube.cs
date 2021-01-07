@@ -18,23 +18,30 @@ namespace Cube_Solver.Cubes
         /// <param name="state">The state of the facelet cube.</param>
         public FaceletCube(string state)
         {
+            // Validate the state size
             if(state.Length < DIM_SQR)
                 throw new Exception("Incorrect number of total facelets");
             
+            // Map chars in the state to Faces
             Dictionary<char, Face> replacements = new Dictionary<char, Face>();
             for (int i = 0; i < NUM_FACES; i++)
+                // Use the centre facelet of each face
                 replacements[state[(i * DIM_SQR) + (DIM_SQR / 2)]] = (Face)i;
 
+            // Initialise faces
             faces = new Face[NUM_FACES][,];
             for (int i = 0; i < NUM_FACES; i++)
             {
+                // Get the substring for this specific face
                 string face = state.Substring(i * DIM_SQR, DIM_SQR);
+                // Use the replacements dictionary to convert to a Face[,]
                 Face[,] f = new Face[DIM, DIM];
                 for (int ix = 0; ix < DIM_SQR; ix++)
                     f[ix / DIM, ix % DIM] = replacements[face[ix]];
                 faces[i] = f;
             }
 
+            // Check that this is a valid state
             string err = Verify();
             if (err != VALID_STATE)
                 throw new Exception(err);
@@ -60,6 +67,7 @@ namespace Cube_Solver.Cubes
         /// <param name="cc">The cube at the cubie level.</param>
         public FaceletCube(CubieCube cc)
         {
+            // Set centres
             faces = new Face[NUM_FACES][,];
             for (int i = 0; i < NUM_FACES; i++)
             {
@@ -89,14 +97,16 @@ namespace Cube_Solver.Cubes
         }
 
         /// <summary>
-        /// Checks the number of each facelet to ensure it is a possible state.
+        /// Checks the number of occurances of each facelet to ensure it is a possible state.
         /// </summary>
         /// <returns>Whether or not this is a valid state.</returns>
         protected override string Verify()
         {
+            // For every face colour
             foreach (Face f in Enum.GetValues(typeof(Face)))
             {
                 int count = 0;
+                // Check how many times that colour occurs in each face
                 foreach (Face[,] face in faces)
                     count += Enumerable.Range(0, DIM_SQR).Count(i => face[i / DIM, i % DIM] == f);
                 if (count != DIM_SQR) return "Incorrect number of individual facelets";
@@ -104,17 +114,21 @@ namespace Cube_Solver.Cubes
             return VALID_STATE;
         }
 
+        // Check if the cube is solved
         public override bool IsSolved()
         {
+            // For each face of the cube
             foreach (Face f in Enum.GetValues(typeof(Face)))
             {
                 Face[,] face = faces[(int)f];
+                // If any of the facelets shouldn't be on this face
                 if (Enumerable.Range(0, DIM_SQR).Any(i => face[i / DIM, i % DIM] != f))
                     return false;
             }
             return true;
         }
 
+        // Pretty-print this cube
         public override void Print()
         {
             // Print U-face
@@ -147,6 +161,9 @@ namespace Cube_Solver.Cubes
             Console.WriteLine();
         }
 
+        /// <summary>
+        /// Flattens the 3d array and converts it to a string
+        /// </summary>
         public override string ToString()
         {
             string s = "";
@@ -234,6 +251,10 @@ namespace Cube_Solver.Cubes
             return res;
         }
 
+        /// <summary>
+        /// Rotates the upper layer of a cube
+        /// </summary>
+        /// <returns>A copy of the cube with a U move applied to it</returns>
         private FaceletCube ApplyUMove()
         {
             FaceletCube res = new FaceletCube(this);
@@ -248,7 +269,10 @@ namespace Cube_Solver.Cubes
             return res;
         }
 
-        // Rotates one face of the cube 90 degrees
+        /// <summary>
+        /// Rotates one face of the cube 90 degrees
+        /// </summary>
+        /// <param name="f">The face to rotate</param>
         private FaceletCube RotFace(int f)
         {
             FaceletCube res = new FaceletCube(this);
@@ -267,11 +291,16 @@ namespace Cube_Solver.Cubes
             switch (face)
             {
                 case Face.U: return ApplyUMove();
-                case Face.D: return RotX().RotX().ApplyUMove().RotX().RotX();      // x2 U x2
-                case Face.F: return RotX().ApplyUMove().RotX().RotX().RotX();      // x U x'
-                case Face.B: return RotX().RotX().RotX().ApplyUMove().RotX();      // x' U x
-                case Face.R: return RotY().ApplyMove(Face.F).RotY().RotY().RotY(); // y F y'
-                case Face.L: return RotY().ApplyMove(Face.B).RotY().RotY().RotY();  // y B y'
+                // x2 U x2
+                case Face.D: return RotX().RotX().ApplyUMove().RotX().RotX();
+                // x U x'
+                case Face.F: return RotX().ApplyUMove().RotX().RotX().RotX();
+                // x' U x
+                case Face.B: return RotX().RotX().RotX().ApplyUMove().RotX();
+                // y F y'
+                case Face.R: return RotY().ApplyMove(Face.F).RotY().RotY().RotY();
+                // y B y'
+                case Face.L: return RotY().ApplyMove(Face.B).RotY().RotY().RotY();
             }
             return null;
         }

@@ -83,8 +83,9 @@ public class Menu : MonoBehaviour
         var unique = colours.Distinct().ToArray();
         Dictionary<Color, char> colour2char = new Dictionary<Color, char>();
         for (int i = 0; i < unique.Length; i++)
-            colour2char[unique[i]] = (char)i;
+            colour2char[unique[i]] = "QWERTY"[i]; // Doesn't actually matter what characters are used
         string state = new string(colours.Select(c => colour2char[c]).ToArray());
+        PlayerPrefs.SetString("state", state);
 
         // Start solver
         tasks = new List<Task>();
