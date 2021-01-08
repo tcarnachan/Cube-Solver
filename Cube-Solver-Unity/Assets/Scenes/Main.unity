@@ -2448,7 +2448,7 @@ GameObject:
   - component: {fileID: 546339174}
   - component: {fileID: 546339173}
   m_Layer: 5
-  m_Name: Exit
+  m_Name: Logout
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2519,7 +2519,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 624123032}
         m_TargetAssemblyTypeName: Menu, Assembly-CSharp
-        m_MethodName: Exit
+        m_MethodName: LogOut
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -8464,7 +8464,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Exit
+  m_Text: Log out
 --- !u!222 &1901136260
 CanvasRenderer:
   m_ObjectHideFlags: 0

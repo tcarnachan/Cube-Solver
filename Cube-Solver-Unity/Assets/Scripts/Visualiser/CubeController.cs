@@ -1,16 +1,20 @@
-﻿using System.Collections;
+﻿using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
+/// <summary>
+/// Displays a 3d animation of the solution
+/// </summary>
 public class CubeController : MonoBehaviour
 {
     private const int DIM = 3;
 
     public GameObject cubiePrefab;
-    // The cubies giong from bottom to top, left to right, front to back
+    // The cubies going from bottom to top, left to right, front to back
     private Transform[] cubies;
     // Pivot for making moves
     private Transform pivot;
@@ -23,15 +27,20 @@ public class CubeController : MonoBehaviour
     // Speed to animate rotation
     public float rotSpeed = 5.0f;
 
+    // The algorithm to be executed
     private string algorithmText;
+    // Index of nextMove in algorithm
     private int nextMove = 0;
     private string[] algorithm;
+    // Variables for displaying the algorithm on screen
     public Transform algorithmDisplay;
     public GameObject moveTextPrefab;
 
+    // Colours used for displaying the algorithm
     private Color defaultColour;
     private Color highlightColour = Color.red;
 
+    // Variables for controlling the visualisation
     private bool playing = false;
     public Sprite play, pause;
     public Image buttonImg;
@@ -63,18 +72,20 @@ public class CubeController : MonoBehaviour
         pivot = new GameObject("Pivot").transform;
         pivot.SetParent(transform);
 
+        // Initialise algorithm display
         algorithmText = PlayerPrefs.GetString("alg");
         InitAlgorithm();
         defaultColour = moveTextPrefab.GetComponent<Text>().color;
-
         Setup(algorithm);
     }
 
+    // Called by 'Save' button
     public void Save()
     {
         StartCoroutine(SaveSolution());
     }
 
+    // Saves the solution to database
     private IEnumerator SaveSolution()
     {
         WWWForm form = new WWWForm();
@@ -91,6 +102,7 @@ public class CubeController : MonoBehaviour
             Debug.Log("Success!");
     }
 
+    // Splits up the algorithm string and displays it on screen
     private void InitAlgorithm()
     {
         algorithm = algorithmText.Split();
@@ -101,6 +113,7 @@ public class CubeController : MonoBehaviour
         }
     }
 
+    // Set the initial cube state
     private void Setup(string[] alg)
     {
         foreach(string s in alg.Reverse())
@@ -143,10 +156,13 @@ public class CubeController : MonoBehaviour
             Play();
     }
 
+    // Called by undo button
     public void Undo()
     {
+        // If there are no moves to undo
         if (nextMove == 0)
             return;
+        // Update display
         algorithmDisplay.GetChild(nextMove - 1).GetComponent<Text>().color = defaultColour;
         if(nextMove != 1)
             algorithmDisplay.GetChild(nextMove - 2).GetComponent<Text>().color = highlightColour;
@@ -160,21 +176,26 @@ public class CubeController : MonoBehaviour
         nextMove--;
     }
 
+    // Called by step button
     public void Step()
     {
+        // If there are no more moves to execute
         if (nextMove == algorithm.Length)
         {
             if(playing)
                 Play();
             return;
         }
+        // Update display
         if(nextMove != 0)
             algorithmDisplay.GetChild(nextMove - 1).GetComponent<Text>().color = defaultColour;
         algorithmDisplay.GetChild(nextMove).GetComponent<Text>().color = highlightColour;
+        // Set the next move to be executed
         ParseMove(algorithm[nextMove]);
         nextMove++;
     }
 
+    // Toggles play/pause
     public void Play()
     {
         if (playing)
@@ -187,6 +208,7 @@ public class CubeController : MonoBehaviour
         playing = !playing;
     }
 
+    // Parses a move from a string in WCA notation
     private void ParseMove(string move)
     {
         Layer layer = (Layer)"RLUDBF".IndexOf(move[0]);
@@ -201,11 +223,13 @@ public class CubeController : MonoBehaviour
             moves.Enqueue((layer, false));
     }
 
+    // Called by 'Back' button
     public void Back()
     {
         SceneManager.LoadSceneAsync("Main");
     }
 
+    // Animate rotating a layer on the cube
     IEnumerator RotateLayer(Layer layer, bool cw, bool animate = true)
     {
         rotating = true;

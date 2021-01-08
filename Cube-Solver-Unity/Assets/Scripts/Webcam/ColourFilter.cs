@@ -6,6 +6,9 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
+/// <summary>
+/// Code for reading a cube state from the webcam
+/// </summary>
 public class ColourFilter : MonoBehaviour
 {
     public RawImage ri, overlay;
@@ -97,22 +100,24 @@ public class ColourFilter : MonoBehaviour
 
         }
 
+        // Clear previous captured colours
         captureColours.Clear();
+        // tl represents the top left corner of each capture region
         foreach (var tl in captureRegions)
         {
+            // Get the colours in that region
             Color[] regionColours = newTex.GetPixels(tl.r, tl.c, captureWidth, captureWidth);
             Color[] nColours = regionColours.Select(c => GetColour(c)).ToArray();
 
+            // Count the occurrences of each colour in that region
             Dictionary<Color, int> counter = new Dictionary<Color, int>();
-
             foreach (Color c in nColours)
             {
-                if (counter.ContainsKey(c))
-                    counter[c]++;
-                else
-                    counter[c] = 1;
+                if (counter.ContainsKey(c)) counter[c]++;
+                else counter[c] = 1;
             }
 
+            // Get the colour which occurs the most often
             int max = 0;
             Color col = Color.black;
             foreach (var kvp in counter)
@@ -123,6 +128,8 @@ public class ColourFilter : MonoBehaviour
                     col = kvp.Key;
                 }
             }
+            // If the most common colour takes up less than 50% of the capture region
+            // assume that there is not a section of the cube in that capture region
             if ((float)max / nColours.Length < .5f)
                 col = new Color(0, 0, 0, .2f);
 
@@ -130,13 +137,16 @@ public class ColourFilter : MonoBehaviour
                 nColours[i] = col;
             captureColours.Add(col);
 
+            // Update the texture
             newTex.SetPixels(tl.r, tl.c, captureWidth, captureWidth, nColours);
         }
 
+        // Apply changes to the texture
         newTex.Apply();
         overlay.texture = newTex;
     }
 
+    // See if the colour of a pixel could be a colour on the cube
     private Color GetColour(Color colour)
     {
         float h, s, v;
@@ -164,6 +174,7 @@ public class ColourFilter : MonoBehaviour
             return colourManager.colours[5];
         }
 
+        // Not a colour on the cube
         return Color.black;
     }
 }

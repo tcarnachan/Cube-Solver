@@ -1,11 +1,17 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
+using UnityEngine;
+
+/// <summary>
+/// Stores the current colour scheme, in charge of saving and loading
+/// colour schemes to and from the database server
+/// </summary>
 class ColourManager : MonoBehaviour
 {
+    // Colour scheme
     public Color[] colours = new Color[]
     {
         new Color(1, 1, 0),  // Yellow
@@ -23,6 +29,7 @@ class ColourManager : MonoBehaviour
         serverManager = FindObjectOfType<ServerManager>();
     }
 
+    // Save colour scheme to server
     public IEnumerator SaveColours()
     {
         WWWForm form = new WWWForm();
@@ -39,6 +46,7 @@ class ColourManager : MonoBehaviour
             Debug.Log("Success!");
     }
 
+    // Load colour scheme from server
     public IEnumerator LoadColours(Action<List<Color[]>> DisplayColours)
     {
         WWWForm form = new WWWForm();
@@ -54,6 +62,7 @@ class ColourManager : MonoBehaviour
         DisplayColours(colourSchemes);
     }
 
+    // Encode the colour as a string
     private static string Col2Str(Color colour)
     {
         return Convert.ToBase64String(new byte[]
@@ -64,6 +73,7 @@ class ColourManager : MonoBehaviour
         });
     }
 
+    // Decode the colour from a string
     private static Color Str2Col(string s)
     {
         byte[] col = Convert.FromBase64String(s);

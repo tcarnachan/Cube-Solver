@@ -7,15 +7,21 @@ using System.Linq;
 using System.Collections;
 using System.Security.Cryptography;
 
+/// <summary>
+/// Code for the login menu
+/// </summary>
 public class LoginSystem : MonoBehaviour
 {
+    // The input fields and buttons
     public Selectable[] uiElems;
     private EventSystem system;
 
     private InputField nameField, passwordField;
     private Button loginButton, registerButton;
+    // Text for displaying errors with logging in
     public Text errorText;
 
+    // Constants for password hashing
     private const int saltSize = 16, hashSize = 20;
     private const int iterations = 10000;
 
@@ -28,6 +34,7 @@ public class LoginSystem : MonoBehaviour
         uiElems[0].Select();
         system = EventSystem.current;
 
+        // Variables for convenience
         nameField = (InputField)uiElems[(int)UIField.NameField];
         passwordField = (InputField)uiElems[(int)UIField.PasswordField];
         loginButton = (Button)uiElems[(int)UIField.LoginButton];
@@ -38,6 +45,7 @@ public class LoginSystem : MonoBehaviour
 
     void Update()
     {
+        // Get the currently selected element
         int currSelected;
         try
         {
@@ -53,11 +61,13 @@ public class LoginSystem : MonoBehaviour
         {
             do
             {
+                // Go to previous element
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
                     currSelected--;
                     if (currSelected < 0) currSelected += uiElems.Length;
                 }
+                // Go to next element
                 else
                     currSelected = (currSelected + 1) % uiElems.Length;
             } while (!uiElems[currSelected].interactable); // Only select an interactable element
@@ -77,12 +87,15 @@ public class LoginSystem : MonoBehaviour
         loginButton.interactable = registerButton.interactable = (usr.Length >= 1 && pwd.Length >= 8);
     }
 
+    // Called by 'Login' button
     public void CallLogin() => StartCoroutine(Login());
-
+    // Called by 'Register' button
     public void CallRegister() => StartCoroutine(Register());
 
+    // Creates a new account and logins in
     private IEnumerator Register()
     {
+        // Create account
         WWWForm form = new WWWForm();
         form.AddField("name", nameField.text);
         form.AddField("password", HashPassword(passwordField.text));
@@ -90,13 +103,16 @@ public class LoginSystem : MonoBehaviour
         WWW www = new WWW("http://localhost:8888/sqlconnect/register.php", form);
         yield return www;
         if (www.text == "0")
+            // Log in
             serverManager.LogIn(nameField.text);
         else
             errorText.text = $"Error in creating account: {www.text}";
     }
 
+    // Verifies password and login
     private IEnumerator Login()
     {
+        // Get hashed password associated with the user
         WWWForm form = new WWWForm();
         form.AddField("name", nameField.text);
 
@@ -104,6 +120,7 @@ public class LoginSystem : MonoBehaviour
         yield return www;
         if (www.text.Length > 0 && www.text[0] == '0')
         {
+            // Verify password
             string password = www.text.Substring(1);
             if (VerifyPassword(passwordField.text, password))
                 serverManager.LogIn(nameField.text);

@@ -157,11 +157,11 @@ public class Menu : MonoBehaviour
         }
     }
 
-    // Called by 'Exit' button
-    public void Exit()
+    // Called by 'Log out' button
+    public void LogOut()
     {
         EndSolver();
-        Application.Quit();
+        FindObjectOfType<ServerManager>().LogOut();
     }
 
     // Stop search

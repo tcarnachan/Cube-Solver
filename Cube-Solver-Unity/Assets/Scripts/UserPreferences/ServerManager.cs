@@ -2,6 +2,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Class in charge of starting and stopping the database server
+/// </summary>
 class ServerManager : MonoBehaviour
 {
     public string username { get; private set; }
@@ -11,8 +14,11 @@ class ServerManager : MonoBehaviour
     // Start server and go to login scene when application is launched
     private void Awake()
     {
-        DontDestroyOnLoad(gameObject); // Keep the server manager between scenes
+        // Keep the server manager between scenes
+        DontDestroyOnLoad(gameObject);
+        // Start server
         ExecuteCommand("cd /Applications/MAMP/bin;./start.sh");
+        // Load login scene
         SceneManager.LoadScene("Login");
     }
 
@@ -23,18 +29,21 @@ class ServerManager : MonoBehaviour
         UnityEngine.Debug.Log("Stopped server");
     }
 
+    // Set username and load main scene
     public void LogIn(string username)
     {
         this.username = username;
         SceneManager.LoadScene("Main");
     }
 
+    // Reset username and load login scene
     public void LogOut()
     {
         username = null;
         SceneManager.LoadScene("Login");
     }
 
+    // Execute a terminal command
     private void ExecuteCommand(string cmd)
     {
         Process process = new Process()

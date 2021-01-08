@@ -1,25 +1,18 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
+/// <summary>
+/// Used to display the faces which would not normally be visible
+/// </summary>
 public class HintFacelet : MonoBehaviour
 {
-    public Vector3 direction;
-    public Vector3 offset;
-
+    public Vector3 direction, offset;
     private MeshRenderer renderer;
-
-    private void Start()
-    {
-        renderer = GetComponent<MeshRenderer>();
-    }
 
     private void Update()
     {
+        if (!renderer) renderer = GetComponent<MeshRenderer>();
         RaycastHit hit;
         if(Physics.Raycast(transform.position + offset, direction, out hit))
-        {
             renderer.material.color = hit.collider.GetComponent<MeshRenderer>().material.color;
-        }
     }
 }
