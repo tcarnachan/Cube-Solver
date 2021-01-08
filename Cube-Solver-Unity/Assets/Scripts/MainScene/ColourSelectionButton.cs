@@ -2,6 +2,10 @@
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
+/// <summary>
+/// Unity buttons don't handle right-clicks, so this class acts as
+/// a button which handles both left and right clicks
+/// </summary>
 public class ColourSelectionButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     public ColourPicker cp;

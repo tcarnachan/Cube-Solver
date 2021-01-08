@@ -1,19 +1,27 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Allows the user to create a custom colour
+/// </summary>
 public class ColourPallette : MonoBehaviour
 {
+    // Dimensions of the colour pallette menu
     public int bgWidth, bgHeight;
+    // Dimensions of the colour pallette
     public int palletteWidth, palleteHeight;
 
+    // Slide allowing the user to select the hue
     public Slider slider;
     public RawImage background;
     public Image handle;
-    
+
+    // 'Slider2D' allowing the user to select saturation and value
     public RawImage pallette;
     private Texture2D pltTex;
     public Slider2D slider2d;
 
+    // Previous colour and currently selected colour
     public Image oldColour, newColour;
     public Image targetImage;
 
@@ -40,6 +48,7 @@ public class ColourPallette : MonoBehaviour
         slider2d.OnXChange = (f) => { s = f; };
         slider2d.OnYChange = (f) => { v = f; };
 
+        // Set the slider positions to select the previous colour
         Color.RGBToHSV(oldColour.color, out h, out s, out v);
         SetH(h);
         slider2d.SetHandlePosition(s, v);
@@ -50,6 +59,7 @@ public class ColourPallette : MonoBehaviour
         newColour.color = Color.HSVToRGB(h, s, v);
     }
 
+    // Set hue
     public void SetH(float value)
     {
         slider.value = value;

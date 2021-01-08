@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Handles allowing the user to select and update the colours of the cube
+/// </summary>
 public class ColourPicker : MonoBehaviour
 {
     // Currently selected colour
@@ -14,6 +17,7 @@ public class ColourPicker : MonoBehaviour
 
     private Color defaultColour;
 
+    // References to GameObjects in scene
     public ColourPallette colourPallette;
     public GameObject colourDisplay, colourDisplayObj;
     public Transform colourDisplayContent;
@@ -21,14 +25,17 @@ public class ColourPicker : MonoBehaviour
     private ServerManager serverManager;
     private ColourManager colourManager;
 
+    // Called when this gameobject is initialised, but before start
     private void Awake()
     {
         serverManager = FindObjectOfType<ServerManager>();
         colourManager = FindObjectOfType<ColourManager>();
+        // Update colours based on the colours stored in colourManager
         for (int i = 0; i < colours.Length; i++)
             UpdateColour(colours[i], colourManager.colours[i]);
     }
 
+    // Called when this gameobject is initialised, but after awake
     private void Start()
     {
         // Add listeners to all facelets on the cube map
@@ -108,16 +115,12 @@ public class ColourPicker : MonoBehaviour
         PlayerPrefs.SetString(serverManager.username, s);
     }
 
-    public void SelectColour(Image img)
-    {
-        selected = img.color;
-    }
+    // Update selected
+    public void SelectColour(Image img) => selected = img.color;
+    // Update the colour of an image
+    private void PlaceColour(Transform img, Color colour) => img.GetComponent<Image>().color = colour;
 
-    private void PlaceColour(Transform img, Color colour)
-    {
-        img.GetComponent<Image>().color = colour;
-    }
-
+    // Reset the cube colours
     public void ClearColours()
     {
         foreach(Transform face in map)
@@ -130,6 +133,7 @@ public class ColourPicker : MonoBehaviour
         }
     }
 
+    // Display a solved cube
     public void SolvedColours()
     {
         foreach(Transform face in map)
@@ -141,8 +145,10 @@ public class ColourPicker : MonoBehaviour
         }
     }
 
+    // Allow the user to customise their colour scheme
     public void UpdateColour(Image targetImage, Color newColour)
     {
+        // Update all the objects in scene
         foreach(Transform face in map)
         {
             foreach(Transform facelet in face)
@@ -160,11 +166,13 @@ public class ColourPicker : MonoBehaviour
         targetImage.color = newColour;
     }
 
+    // Save the colour scheme to the database
     public void SaveColours()
     {
         StartCoroutine(colourManager.SaveColours());
     }
 
+    // Load colour schemes from database
     public void LoadColours()
     {
         StartCoroutine(colourManager.LoadColours(x =>
@@ -191,8 +199,10 @@ public class ColourPicker : MonoBehaviour
         }));
     }
 
+    // Set the colours of the cube
     public void SetColours(string colours)
     {
+        // Dictionary to convert from the string to Colors
         Dictionary<char, Color> colourLookup = new Dictionary<char, Color>();
         string faces = "ULFRBD";
         for (int i = 0; i < faces.Length; i++)
@@ -200,7 +210,7 @@ public class ColourPicker : MonoBehaviour
             Transform f = map.GetChild(i);
             colourLookup[faces[i]] = f.GetChild(f.childCount / 2).GetComponent<Image>().color;
         }
-
+        // Update the cube colours on screen
         int ix = 0;
         foreach(Transform face in map)
         {
@@ -209,6 +219,7 @@ public class ColourPicker : MonoBehaviour
         }
     }
 
+    // Get the colours of the cube in scene
     public Color[] GetColours()
     {
         List<Color> colours = new List<Color>();

@@ -1,44 +1,63 @@
-﻿using Cube_Solver.Cubes;
-using Cube_Solver.Solver;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
+
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+using Cube_Solver.Cubes;
+using Cube_Solver.Solver;
+
+/// <summary>
+/// In charge of updating the menu, provides functions which are called by the buttons in MainScene
+/// </summary>
 public class Menu : MonoBehaviour
 {
+    // In charge of allowing the user to select/update colours
     public ColourPicker colourPicker;
+    // Transform for displaying solutions
     public Transform solutionDisplay;
+    // Prefab for displaying an algorithm
     public GameObject algText;
 
+    // Variables used for running Search
     private List<Task> tasks;
     private CancellationTokenSource tokenSource;
     private SearchTables st;
     private Symmetries sym;
 
+    // Used for giving the user feedback if an error occurs
     public GameObject errorDisplay;
     public Text errorText;
-
-    private Queue<string> cb = new Queue<string>();
-    private Queue<GameObject> solutionText = new Queue<GameObject>();
     private string error = null;
 
+    // Solutions are passed to solutionsQueue from Search and then displayed
+    private Queue<string> solutionsQueue = new Queue<string>();
+    private Queue<GameObject> solutionText = new Queue<GameObject>();
+
+    // Called when this gameobject is initialised
     private void Start()
     {
-        st = new SearchTables("Assets/Resources/", s => cb.Enqueue(s));
+        // Load search tables from files
+        st = new SearchTables("Assets/Resources/", s => solutionsQueue.Enqueue(s));
+        // Initialise symmetries
         sym = new Symmetries();
     }
 
+    // Called each frame
     private void Update()
     {
-        if (cb.Count > 0)
+        // If there is a new solution found
+        if (solutionsQueue.Count > 0)
         {
+            // Instantiate a new gameobject as a child of solutionDisplay
             GameObject alg = Instantiate(algText, solutionDisplay);
-            alg.GetComponent<Text>().text = cb.Dequeue();
+            // Set its text field to the new solution
+            alg.GetComponent<Text>().text = solutionsQueue.Dequeue();
+            // When the solution is clicked, visualise that solution
             alg.GetComponent<Button>().onClick.AddListener(() =>
             {
                 string text = alg.GetComponent<Text>().text;
@@ -47,33 +66,44 @@ public class Menu : MonoBehaviour
             });
             solutionText.Enqueue(alg);
         }
+        // If there was an error
         if(error != null)
         {
+            // Display the error
             errorText.text = error;
             errorDisplay.SetActive(true);
+            // Reset error
             error = null;
         }
     }
 
+    // Called by 'Solved' button
     public void Solved()
     {
         colourPicker.SolvedColours();
     }
 
+    // Called by 'Random' button
     public void Random()
     {
+        // Generate a random cube
         FaceletCube fc = new FaceletCube(CubieCube.RandomCube());
+        // Display the generated cube
         colourPicker.SetColours(fc.ToString().Replace(" ", ""));
     }
 
+    // Called by 'Clear' button
     public void Clear()
     {
+        // Stop searching
         EndSolver();
         colourPicker.ClearColours();
     }
 
+    // Called by 'Solve' button
     public void Solve()
     {
+        // End previous search
         EndSolver();
 
         // Get colours from map
@@ -87,7 +117,7 @@ public class Menu : MonoBehaviour
         string state = new string(colours.Select(c => colour2char[c]).ToArray());
         PlayerPrefs.SetString("state", state);
 
-        // Start solver
+        // Reset variables for search
         tasks = new List<Task>();
         tokenSource = new CancellationTokenSource();
         Search.solutions = new ConcurrentDictionary<string, byte>();
@@ -107,9 +137,11 @@ public class Menu : MonoBehaviour
         // Chose what to run in parallel
         List<int> nums = Enumerable.Range(0, 6).ToList();
         HashSet<int> syms = sym.GetSymmetries(cc);
-        if (syms.Union(new int[] { 16, 20, 24, 28 }).Count() > 0) // The cube has rotational symmetry about the long diagonal
+        // If the cube has rotational symmetry about the long diagonal
+        if (syms.Union(new int[] { 16, 20, 24, 28 }).Count() > 0)
             nums = new List<int> { 0, 3 }; // Only search one rotation and its inverse
-        if (syms.Union(Enumerable.Range(Symmetries.N_SYMS, Symmetries.N_SYMS)).Count() > 0) // The cube has anti-symmetry
+        // If the cube has anti-symmetry
+        if (syms.Union(Enumerable.Range(Symmetries.N_SYMS, Symmetries.N_SYMS)).Count() > 0)
             nums = nums.Where(i => i < 3).ToList(); // Don't search the inverses
 
         // Start searching
@@ -125,20 +157,25 @@ public class Menu : MonoBehaviour
         }
     }
 
+    // Called by 'Exit' button
     public void Exit()
     {
         EndSolver();
         Application.Quit();
     }
 
+    // Stop search
     private void EndSolver()
     {
+        // If there is a search, request cancellation
         if (tokenSource != null)
             tokenSource.Cancel();
+        // Remove the displayed solutions
         while (solutionText.Count > 0)
             Destroy(solutionText.Dequeue());
     }
 
+    // Called by 'Webcam' button
     public void LoadWebcam()
     {
         SceneManager.LoadScene("Webcam");
