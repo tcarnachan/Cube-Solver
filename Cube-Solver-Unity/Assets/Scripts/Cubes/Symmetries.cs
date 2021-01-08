@@ -9,6 +9,9 @@ namespace Cube_Solver.Cubes
     using Edge = Cube.Edge;
     using Corner = Cube.Corner;
 
+    /// <summary>
+    /// A class used to generate the symmetries of a cube
+    /// </summary>
     public class Symmetries
     {
         /*
@@ -105,12 +108,6 @@ namespace Cube_Solver.Cubes
 
         private static CubieCube urfCube;
 
-        // Used for searching in parallel
-        public CubieCube RotURF(CubieCube cube)
-        {
-            return urfCube.InverseCube().Multiply(cube).Multiply(urfCube);
-        }
-
         private void InitURFCube()
         {
             int[] ep = new int[Cube.NUM_EDGES], eo = new int[Cube.NUM_EDGES];
@@ -136,6 +133,12 @@ namespace Cube_Solver.Cubes
                 co[(int)c]++;
 
             urfCube = new CubieCube(cp, co, ep, eo);
+        }
+
+        // Used for searching in parallel
+        public CubieCube RotURF(CubieCube cube)
+        {
+            return urfCube.InverseCube().Multiply(cube).Multiply(urfCube);
         }
 
         // Reflection about the RL-slice plane

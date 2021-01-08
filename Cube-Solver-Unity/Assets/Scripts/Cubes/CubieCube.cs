@@ -29,19 +29,17 @@ namespace Cube_Solver.Cubes
         public int[] ep { get; private set; } = new int[NUM_EDGES];
 
         #region Cache move data
+        // Maps a Face to a CubieCube representing the effect of applying a clockwise turn of that face to a cube
         private static Dictionary<Face, CubieCube> moveLookup = new Dictionary<Face, CubieCube>();
 
         private static bool initialised = false;
 
+        // Initialises the moveLookup dictionary
         private static void Initialise()
         {
             initialised = true;
 
-            string solved = "";
-            foreach (Face f in Enum.GetValues(typeof(Face)))
-                solved += new string(f.ToString()[0], DIM_SQR);
-
-            Cube fc = new FaceletCube(solved);
+            Cube fc = new FaceletCube(SolvedCube());
             foreach (Face f in Enum.GetValues(typeof(Face)))
                 moveLookup[f] = new CubieCube((FaceletCube)fc.ApplyMove(f, Dir.CW));
         }
@@ -84,7 +82,7 @@ namespace Cube_Solver.Cubes
             for (int i = 0; i < NUM_EDGES; i++)
             {
                 int[] e = GetEdge(i).Select(_e => GetFacelet(fc, _e)).ToArray();
-                // For every corner cubie
+                // For every edge cubie
                 int ori = -1, j;
                 for (j = 0; j < NUM_EDGES && ori == -1; j++)
                 {
@@ -99,16 +97,20 @@ namespace Cube_Solver.Cubes
                 if (ori == -1)
                     throw new Exception($"Edge {(Face)e[0]}{(Face)e[1]} not found");
 
-                // At corner position i is corner cubie j
+                // At edge position i is edge cubie j
                 ep[i] = j - 1;
                 eo[i] = ori;
             }
 
+            // Check that this cube is in a solvable state
             string err = Verify();
             if (err != VALID_STATE)
                 throw new Exception(err);
         }
 
+        /// <summary>
+        /// Convenience function for accessing a facelet
+        /// </summary>
         private static int GetFacelet(FaceletCube fc, (int f, int r, int c) index)
         {
             return (int)fc.faces[index.f][index.r, index.c];
@@ -126,6 +128,13 @@ namespace Cube_Solver.Cubes
             Array.Copy(cc.eo, eo, NUM_EDGES);
         }
 
+        /// <summary>
+        /// Constructs a CubieCube from the individual arrays
+        /// </summary>
+        /// <param name="cp">Corner permutation array</param>
+        /// <param name="co">Corner orientation array</param>
+        /// <param name="ep">Edge permutation array</param>
+        /// <param name="eo">Edge orientation array</param>
         public CubieCube(int[] cp, int[] co, int[] ep, int[] eo)
         {
             Array.Copy(cp, this.cp, NUM_CORNERS);
@@ -134,8 +143,15 @@ namespace Cube_Solver.Cubes
             Array.Copy(eo, this.eo, NUM_EDGES);
         }
 
+        /// <summary>
+        /// Returns this cube with the move applied to it without modifying this object.
+        /// </summary>
+        /// <param name="f">The face to rotate</param>
+        /// <param name="dir">The direction to rotate the face in</param>
+        /// <returns></returns>
         public override Cube ApplyMove(Face f, Dir dir)
         {
+            // Cache move data the first time this is run
             if (!initialised)
                 Initialise();
 
@@ -146,18 +162,22 @@ namespace Cube_Solver.Cubes
             return res;
         }
 
-        // Prints the permutations and orientations of each piece (corners and then edges)
+        // Prints the permutations and orientations of each piece (corners then edges)
         public override void Print()
         {
+            // Print corner permutations
             Console.Write("----------\nCorners:\np:");
             for (int i = 0; i < NUM_CORNERS; ++i)
                 Console.Write($" {cp[i]}");
+            // Print corner orientations
             Console.Write("\no:");
             for (int i = 0; i < NUM_CORNERS; ++i)
                 Console.Write($" {co[i]}");
+            // Print edge permutations
             Console.Write("\nEdges:\np:");
             for (int i = 0; i < NUM_EDGES; ++i)
                 Console.Write($" {ep[i]:00}");
+            // Print edge orientations
             Console.Write("\no:");
             for (int i = 0; i < NUM_EDGES; ++i)
                 Console.Write($" {eo[i]:00}");
@@ -186,13 +206,18 @@ namespace Cube_Solver.Cubes
                 return "Invalid corner orientation";
             if (eo.Sum() % 2 != 0)
                 return "Invalid edge orientation";
+            // Check parity
             if ((GetParity(cp) ^ GetParity(ep)) != 0)
                 return "Invalid parity";
             return VALID_STATE;
         }
 
+        /// <summary>
+        /// Returns whether the parity of the given data is even or odd
+        /// </summary>
         private static int GetParity(int[] data)
         {
+            // Calculate the parity
             int parity = 0;
             for (int i = 0; i < data.Length; i++)
             {
@@ -202,9 +227,13 @@ namespace Cube_Solver.Cubes
                         parity++;
                 }
             }
-            return parity % 2; // Only care if the parity is even or odd
+            // Only care if the parity is even or odd
+            return parity % 2;
         }
 
+        /// <summary>
+        /// Returns whether this cube is in the solved state
+        /// </summary>
         public override bool IsSolved()
         {
             // Check orientations
@@ -216,13 +245,19 @@ namespace Cube_Solver.Cubes
             return true;
         }
 
+        /// <summary>
+        /// Multiplies this CubieCube with another CubieCube
+        /// See the documented design section for details of the multiplcation operation
+        /// </summary>
         public CubieCube Multiply(CubieCube cc)
         {
             int[] ncp = new int[cp.Length], nco = new int[co.Length], nep = new int[ep.Length], neo = new int[eo.Length];
 
+            // Multiply corner permutations
             for (int i = 0; i < cp.Length; i++)
                 ncp[i] = cc.cp[cp[i]];
 
+            // Multiply corner orientations
             for (int i = 0; i < co.Length; i++) // Orientations of mirrored cubes have to be handled differently
             {
                 int ori;
@@ -250,9 +285,11 @@ namespace Cube_Solver.Cubes
                 nco[i] = ori;
             }
 
+            // Multiply edge permutations
             for (int i = 0; i < ep.Length; i++)
                 nep[i] = cc.ep[ep[i]];
 
+            // Multiply edge orientations
             for (int i = 0; i < eo.Length; i++)
                 neo[i] = (cc.eo[ep[i]] + eo[i]) % 2;
 
@@ -275,6 +312,10 @@ namespace Cube_Solver.Cubes
             return ep.Concat(eo).Concat(cp).Concat(co).Aggregate(17, (acc, val) => acc * 31 + val);
         }
 
+        /// <summary>
+        /// Generates a random CubieCube with all possibilities being equally likely
+        /// </summary>
+        /// <returns>A random CubieCube</returns>
         public static CubieCube RandomCube()
         {
             // Randomly arrange the edges
@@ -293,29 +334,39 @@ namespace Cube_Solver.Cubes
             return new CubieCube(cp, co, ep, eo);
         }
 
+        /// <summary>
+        /// Returns the inverse of this CubieCube without modifying this object
+        /// </summary>
         public CubieCube InverseCube()
         {
             int[] invEP = new int[NUM_EDGES], invCP = new int[NUM_CORNERS];
             int[] invEO = new int[NUM_EDGES], invCO = new int[NUM_CORNERS];
 
+            // Invert edge permutations
             for (int i = 0; i < NUM_EDGES; i++)
                 invEP[ep[i]] = i;
+            // Invert edge orientations
             for (int i = 0; i < NUM_EDGES; i++)
                 invEO[i] = eo[invEP[i]];
 
+            // Invert corner permutations
             for (int i = 0; i < NUM_CORNERS; i++)
                 invCP[cp[i]] = i;
+            // Invert corner orientations
             for (int i = 0; i < NUM_CORNERS; i++)
             {
-                if (co[invCP[i]] >= 3)
+                if (co[invCP[i]] >= 3) // If it is mirrored
                     invCO[i] = co[invCP[i]];
-                else
+                else // Normal cube
                     invCO[i] = (3 - co[invCP[i]]) % 3;
             }
 
             return new CubieCube(invCP, invCO, invEP, invEO);
         }
 
+        /// <summary>
+        /// Returns a CubieCube which is in the solved state
+        /// </summary>
         public static CubieCube SolvedCube()
         {
             // Generate edges in order

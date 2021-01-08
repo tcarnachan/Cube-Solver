@@ -9,6 +9,10 @@ namespace Cube_Solver.Solver
     using Face = Cube.Face;
     using Dir = Cube.Dir;
 
+    /// <summary>
+    /// A class which creates, saves, and loads pruning tables and move tables
+    /// which are used to speed up computation in Search
+    /// </summary>
     public class SearchTables
     {
         private const int NUM_COS = 2187;   // 3^7 cases
@@ -17,16 +21,20 @@ namespace Cube_Solver.Solver
         public const int NUM_CPS = 40320;  // 8! cases
         private const int NUM_EPS = 967680; // 8! * 4! cases
 
-        public const string coPath = "corner_ori";
-        public const string eoPath = "edge_ori";
-        public const string cpPath = "corner_perm";
-        public const string epPath = "edge_perm";
-        public const string mtCPPath = "move_cp";
-        public const string mtEPPath = "move_ep";
+        // The filenames of where the various tables are stored
+        private const string coPath = "corner_ori";
+        private const string eoPath = "edge_ori";
+        private const string cpPath = "corner_perm";
+        private const string epPath = "edge_perm";
+        private const string mtCPPath = "move_cp";
+        private const string mtEPPath = "move_ep";
 
+        // Pruning tables used to reduce the search space
         public PruningTable coTable, eoTable, cpTable, epTable;
+        // Move tables to speed up applying moves in phase 2
         public MoveTable mtCP, mtEP;
 
+        // Lists which store the valid moves in each phase of the solve
         public List<(Face, Dir)> phase1moves = new List<(Face, Dir)>();
         public List<(Face, Dir)> phase2moves = new List<(Face, Dir)>();
 
@@ -74,12 +82,26 @@ namespace Cube_Solver.Solver
             InitMoveTable(ref mtEP, solved, NUM_EPS, idCalc.GetEP, mtEPPath, "edge permutation");
         }
 
-        private void InitPruningTable(ref PruningTable table, CubieCube solved, int size, Func<CubieCube, int> GetID, List<(Cube.Face, Cube.Dir)> applicableMoves, string filename, string description)
+        /// <summary>
+        /// Either finds a pruning table which has already been generated, or generates a
+        /// pruning table and saves it to a file for when it is next used
+        /// </summary>
+        /// <param name="table">The pruning table to initialise</param>
+        /// <param name="solved">A CubieCube in the solved state</param>
+        /// <param name="size">The number of elements in the pruning table</param>
+        /// <param name="GetID">A function which converts a CubieCube into an index in the pruning table</param>
+        /// <param name="applicableMoves">The moves which can be applied to the cube to generate this table</param>
+        /// <param name="filename">The filename where the table is stored</param>
+        /// <param name="description">A description of the table being generated for debugging purposes</param>
+        private void InitPruningTable(ref PruningTable table, CubieCube solved, int size, Func<CubieCube, int> GetID, List<(Face, Dir)> applicableMoves, string filename, string description)
         {
+            // If the table has already been initialised
             if (table != null) return;
             string filepath = resourcePath + filename;
+            // See if the table has been saved to a file
             if (File.Exists(filepath))
                 table = new PruningTable(filepath);
+            // Otherwise generate the table and save it to a file
             else
             {
                 Output($"Generating {description} pruning tables...");
@@ -88,12 +110,25 @@ namespace Cube_Solver.Solver
             }
         }
 
+        /// <summary>
+        /// Either finds a move table which has already been generated, or generates a
+        /// move table and saves it to a file for when it is next used
+        /// </summary>
+        /// <param name="table">The move table to initialise</param>
+        /// <param name="solved">A CubieCube in the solved state</param>
+        /// <param name="size">The number of elements in the move table</param>
+        /// <param name="GetID">A function which converts a CubieCube into an index in the move table</param>
+        /// <param name="filename">The filename where the table is stored</param>
+        /// <param name="description">A description of the table being generated for debugging purposes</param>
         private void InitMoveTable(ref MoveTable table, CubieCube solved, int size, Func<CubieCube, int> GetID, string filename, string description)
         {
+            // If the table has already been initialised
             if (table != null) return;
             string filepath = resourcePath + filename;
+            // See if the table has been saved to a file
             if (File.Exists(filepath))
                 table = new MoveTable(filepath);
+            // Otherwise generate the table and save it to a file
             else
             {
                 Output($"Generating {description} move tables...");
