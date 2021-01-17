@@ -45,6 +45,16 @@ public class Menu : MonoBehaviour
         st = new SearchTables("Assets/Resources/", s => solutionsQueue.Enqueue(s));
         // Initialise symmetries
         sym = new Symmetries();
+        // If there were some previously loaded scenes
+        string username = FindObjectOfType<ServerManager>().username;
+        string solns = PlayerPrefs.GetString(username + "-solutions", null);
+        if (solns != null)
+        {
+            // Display each solutions
+            foreach(string solution in solns.Split('\n'))
+                DisplaySolution(solution);
+            PlayerPrefs.SetString(username + "-solutions", null);
+        }
     }
 
     // Called each frame
@@ -52,20 +62,7 @@ public class Menu : MonoBehaviour
     {
         // If there is a new solution found
         if (solutionsQueue.Count > 0)
-        {
-            // Instantiate a new gameobject as a child of solutionDisplay
-            GameObject alg = Instantiate(algText, solutionDisplay);
-            // Set its text field to the new solution
-            alg.GetComponent<Text>().text = solutionsQueue.Dequeue();
-            // When the solution is clicked, visualise that solution
-            alg.GetComponent<Button>().onClick.AddListener(() =>
-            {
-                string text = alg.GetComponent<Text>().text;
-                PlayerPrefs.SetString("alg", text.Substring(0, text.IndexOf('(') - 1));
-                SceneManager.LoadScene("Visualiser");
-            });
-            solutionText.Enqueue(alg);
-        }
+            DisplaySolution(solutionsQueue.Dequeue());
         // If there was an error
         if(error != null)
         {
@@ -75,6 +72,30 @@ public class Menu : MonoBehaviour
             // Reset error
             error = null;
         }
+    }
+
+    private void DisplaySolution(string solution)
+    {
+        // Instantiate a new gameobject as a child of solutionDisplay
+        GameObject alg = Instantiate(algText, solutionDisplay);
+        // Set its text field to the new solution
+        alg.GetComponent<Text>().text = solution;
+        // When the solution is clicked, visualise that solution
+        alg.GetComponent<Button>().onClick.AddListener(() =>
+        {
+            string text = alg.GetComponent<Text>().text;
+            // Load the solution to visualise
+            PlayerPrefs.SetString("alg", text.Substring(0, text.IndexOf('(') - 1));
+            // Store all of the solutions that were found for when this scene is reloaded
+            string username = FindObjectOfType<ServerManager>().username;
+            List<string> solutions = new List<string>();
+            foreach (Transform child in solutionDisplay)
+                solutions.Add(child.GetComponent<Text>().text);
+            PlayerPrefs.SetString(username + "-solutions", string.Join("\n", solutions));
+            // Load the visualiser scene
+            SceneManager.LoadScene("Visualiser");
+        });
+        solutionText.Enqueue(alg);
     }
 
     // Called by 'Solved' button
