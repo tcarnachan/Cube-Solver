@@ -90,7 +90,9 @@ public class CubeController : MonoBehaviour
     {
         WWWForm form = new WWWForm();
         form.AddField("name", serverManager.username);
-        form.AddField("solution", algorithmText.Replace("'", "\\'")); // Escape ' characters for sql
+        string solution = algorithmText.Replace("'", "\\'"); // Escape ' characters for sql
+        solution += $"({algorithm.Length})"; // Store algorithm length
+        form.AddField("solution", solution); 
         form.AddField("state", PlayerPrefs.GetString("state"));
 
         WWW www = new WWW("http://localhost:8888/sqlconnect/savesolution.php", form);

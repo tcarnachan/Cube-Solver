@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Webcam.unity
     guid: f004394e4b38946488933ce1e4b2ddcc
+  - enabled: 1
+    path: Assets/Scenes/LoadSolves.unity
+    guid: 88d3ece1c6ab547eab6f618bd090fdc3
   m_configObjects: {}

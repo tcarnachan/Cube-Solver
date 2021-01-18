@@ -15,6 +15,20 @@ public class ColourPicker : MonoBehaviour
     // Colour buttons
     public Image[] colours;
 
+    // Clear and load state buttons
+    public GameObject clearButton, loadStateButton;
+    private bool isClear = true;
+    public bool IsClear
+    {
+        get { return isClear; }
+        set
+        {
+            isClear = value;
+            clearButton.SetActive(!isClear);
+            loadStateButton.SetActive(isClear);
+        }
+    }
+
     private Color defaultColour;
 
     // References to GameObjects in scene
@@ -55,6 +69,7 @@ public class ColourPicker : MonoBehaviour
         // Get default colour
         defaultColour = map.GetComponentInChildren<Image>().color;
 
+        IsClear = false;
         // Check for webcam
         string webcam = PlayerPrefs.GetString("webcam", string.Empty);
         if (webcam != string.Empty)
@@ -85,12 +100,12 @@ public class ColourPicker : MonoBehaviour
         {
             // Load previously saved cubestate
             string state = PlayerPrefs.GetString(serverManager.username, null);
-            if(state != null)
+            if (state != null)
             {
                 int ix = 0;
-                foreach(Transform face in map)
+                foreach (Transform face in map)
                 {
-                    foreach(Transform facelet in face)
+                    foreach (Transform facelet in face)
                     {
                         int t = state[ix++] - '0';
                         if (t < colourManager.colours.Length)
@@ -98,6 +113,8 @@ public class ColourPicker : MonoBehaviour
                     }
                 }
             }
+            else
+                IsClear = true;
         }
     }
 
@@ -118,7 +135,11 @@ public class ColourPicker : MonoBehaviour
     // Update selected
     public void SelectColour(Image img) => selected = img.color;
     // Update the colour of an image
-    private void PlaceColour(Transform img, Color colour) => img.GetComponent<Image>().color = colour;
+    private void PlaceColour(Transform img, Color colour)
+    {
+        img.GetComponent<Image>().color = colour;
+        IsClear &= (colour == defaultColour);
+    }
 
     // Reset the cube colours
     public void ClearColours()
@@ -131,6 +152,7 @@ public class ColourPicker : MonoBehaviour
                     PlaceColour(face.GetChild(i), defaultColour);
             }
         }
+        IsClear = true;
     }
 
     // Display a solved cube
@@ -229,5 +251,11 @@ public class ColourPicker : MonoBehaviour
                 colours.Add(facelet.GetComponent<Image>().color);
         }
         return colours.ToArray();
+    }
+
+    // Used in Menu
+    public int IndexOf(Color colour)
+    {
+        return System.Array.IndexOf(colourManager.colours, colour);
     }
 }

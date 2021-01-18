@@ -134,7 +134,11 @@ public class Menu : MonoBehaviour
         var unique = colours.Distinct().ToArray();
         Dictionary<Color, char> colour2char = new Dictionary<Color, char>();
         for (int i = 0; i < unique.Length; i++)
-            colour2char[unique[i]] = "QWERTY"[i]; // Doesn't actually matter what characters are used
+        {
+            int ix = colourPicker.IndexOf(unique[i]);
+            if (ix == -1) ix = 7;
+            colour2char[unique[i]] = (char)(ix + '0');
+        }
         string state = new string(colours.Select(c => colour2char[c]).ToArray());
         PlayerPrefs.SetString("state", state);
 
@@ -200,5 +204,11 @@ public class Menu : MonoBehaviour
     public void LoadWebcam()
     {
         SceneManager.LoadScene("Webcam");
+    }
+
+    // Called by 'load states' button
+    public void LoadStates()
+    {
+        SceneManager.LoadScene("LoadSolves");
     }
 }
