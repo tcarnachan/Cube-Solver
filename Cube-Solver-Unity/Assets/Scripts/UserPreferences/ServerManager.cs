@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -12,14 +13,22 @@ class ServerManager : MonoBehaviour
     public bool loggedIn { get => !string.IsNullOrEmpty(username); }
 
     // Start server and go to login scene when application is launched
-    private void Awake()
+    private IEnumerator Start()
     {
         // Keep the server manager between scenes
         DontDestroyOnLoad(gameObject);
         // Start server
         ExecuteCommand("cd /Applications/MAMP/bin;./start.sh");
         // Load login scene
-        SceneManager.LoadScene("Login");
+        SceneManager.LoadSceneAsync("Login");
+        // Initialise database at the same time
+        WWW www = new WWW("http://localhost:8888/sqlconnect/initdatabase.php");
+        yield return www;
+
+        if (www.text != "0")
+            UnityEngine.Debug.LogError($"Error in initialising database: {www.text}");
+        else
+            UnityEngine.Debug.Log("Database initialised");
     }
 
     // Stop server when application is closed
